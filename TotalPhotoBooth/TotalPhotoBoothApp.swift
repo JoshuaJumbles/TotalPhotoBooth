@@ -6,12 +6,28 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct TotalPhotoBoothApp: App {
+    private let repository: SwiftDataPhotoSessionRepository
+
+    init() {
+        let modelContainer: ModelContainer
+        do {
+            modelContainer = try ModelContainer(for: PhotoSessionModel.self)
+        } catch {
+            fatalError("Failed to create ModelContainer: \(error)")
+        }
+        repository = SwiftDataPhotoSessionRepository(modelContainer: modelContainer)
+    }
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView(
+                captureViewModel: CaptureViewModel(repository: repository),
+                reportViewModel: ReportViewModel(repository: repository)
+            )
         }
     }
 }
