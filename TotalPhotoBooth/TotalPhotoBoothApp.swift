@@ -25,7 +25,7 @@ struct TotalPhotoBoothApp: App {
     var body: some Scene {
         WindowGroup {
             RootView(
-                captureViewModel: CaptureViewModel(repository: repository),
+                sessionConfigurationViewModel: SessionConfigurationViewModel(repository: repository),
                 reportViewModel: ReportViewModel(repository: repository)
             )
         }

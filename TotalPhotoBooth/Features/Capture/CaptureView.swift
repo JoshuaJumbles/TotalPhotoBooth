@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CaptureView: View {
     let viewModel: CaptureViewModel
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         VStack(spacing: 24) {
@@ -9,7 +10,7 @@ struct CaptureView: View {
                 .font(.system(size: 64))
                 .foregroundStyle(.tint)
 
-            Text("\(viewModel.sessionCount) photo\(viewModel.sessionCount == 1 ? "" : "s") taken")
+            Text("\(viewModel.capturedCount) photo\(viewModel.capturedCount == 1 ? "" : "s") this session")
                 .font(.title2)
 
             Button {
@@ -25,9 +26,13 @@ struct CaptureView: View {
             }
             .buttonStyle(.borderedProminent)
             .disabled(viewModel.isSaving)
+
+            Button("End Session") {
+                dismiss()
+            }
+            .buttonStyle(.bordered)
         }
         .padding()
-        .task { await viewModel.loadInitialCount() }
         .alert(
             "Error",
             isPresented: Binding(
