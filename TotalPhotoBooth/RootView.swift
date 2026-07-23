@@ -7,7 +7,7 @@ struct RootView: View {
     var body: some View {
         TabView {
             SessionConfigurationView(viewModel: sessionConfigurationViewModel)
-                .tabItem { Label("Session", systemImage: "gearshape") }
+                .tabItem { Label("Config", systemImage: "gearshape") }
 
             ReportView(viewModel: reportViewModel)
                 .tabItem { Label("Activity", systemImage: "chart.bar") }
