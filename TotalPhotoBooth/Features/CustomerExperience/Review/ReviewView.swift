@@ -1,36 +1,43 @@
 import SwiftUI
 
-struct CaptureView: View {
-    let viewModel: CaptureViewModel
-    @Environment(\.dismiss) private var dismiss
+struct ReviewView: View {
+    let viewModel: ReviewViewModel
+
+    private let columns = [GridItem(.flexible()), GridItem(.flexible())]
 
     var body: some View {
         VStack(spacing: 24) {
-            Image(systemName: "camera.fill")
-                .font(.system(size: 64))
-                .foregroundStyle(.tint)
-
-            Text("\(viewModel.capturedCount) photo\(viewModel.capturedCount == 1 ? "" : "s") this session")
+            Text("Review Your Photos")
                 .font(.title2)
 
+            LazyVGrid(columns: columns, spacing: 16) {
+                ForEach(viewModel.photos) { photo in
+                    VStack(spacing: 8) {
+                        Image(systemName: "photo.fill")
+                            .font(.system(size: 48))
+                            .foregroundStyle(.tint)
+                        Button("Retake") {
+                            viewModel.retake(at: photo.index)
+                        }
+                        .font(.caption)
+                    }
+                }
+            }
+            .padding(.horizontal)
+
             Button {
-                Task { await viewModel.capturePhoto() }
+                Task { await viewModel.confirm() }
             } label: {
                 if viewModel.isSaving {
                     ProgressView()
                 } else {
-                    Text("Take Photo")
+                    Text("Confirm")
                         .font(.headline)
                         .frame(minWidth: 160)
                 }
             }
             .buttonStyle(.borderedProminent)
             .disabled(viewModel.isSaving)
-
-            Button("End Session") {
-                dismiss()
-            }
-            .buttonStyle(.bordered)
         }
         .padding()
         .alert(

@@ -3,7 +3,7 @@ import Foundation
 @Observable
 final class SessionConfigurationViewModel {
     private(set) var sessionCount: Int = 0
-    private(set) var isPresentingCapture: Bool = false
+    private(set) var isPresentingCustomerExperience: Bool = false
     var errorMessage: String?
 
     private let repository: PhotoSessionRepositoryProtocol
@@ -20,16 +20,16 @@ final class SessionConfigurationViewModel {
         }
     }
 
-    func startSession() {
-        isPresentingCapture = true
+    func startKioskMode() {
+        isPresentingCustomerExperience = true
     }
 
-    func endSession() async {
-        isPresentingCapture = false
+    func endKioskMode() async {
+        isPresentingCustomerExperience = false
         await loadInitialCount()
     }
 
-    func makeCaptureViewModel() -> CaptureViewModel {
-        CaptureViewModel(repository: repository)
+    func makeCustomerExperienceViewModel() -> CustomerExperienceViewModel {
+        CustomerExperienceViewModel(repository: repository)
     }
 }

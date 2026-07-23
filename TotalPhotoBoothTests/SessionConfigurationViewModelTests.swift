@@ -13,23 +13,23 @@ struct SessionConfigurationViewModelTests {
         #expect(viewModel.sessionCount == 2)
     }
 
-    @Test func startSessionPresentsCapture() {
+    @Test func startKioskModePresentsCustomerExperience() {
         let repository = InMemoryPhotoSessionRepository()
         let viewModel = SessionConfigurationViewModel(repository: repository)
 
-        viewModel.startSession()
+        viewModel.startKioskMode()
 
-        #expect(viewModel.isPresentingCapture)
+        #expect(viewModel.isPresentingCustomerExperience)
     }
 
-    @Test func endSessionDismissesCaptureAndRefreshesCount() async {
+    @Test func endKioskModeDismissesCustomerExperienceAndRefreshesCount() async {
         let repository = InMemoryPhotoSessionRepository(sessions: [PhotoSession()])
         let viewModel = SessionConfigurationViewModel(repository: repository)
-        viewModel.startSession()
+        viewModel.startKioskMode()
 
-        await viewModel.endSession()
+        await viewModel.endKioskMode()
 
-        #expect(!viewModel.isPresentingCapture)
+        #expect(!viewModel.isPresentingCustomerExperience)
         #expect(viewModel.sessionCount == 1)
     }
 }
