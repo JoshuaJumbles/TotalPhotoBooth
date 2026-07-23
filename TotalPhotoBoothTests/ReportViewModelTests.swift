@@ -1,9 +1,10 @@
-import XCTest
+import Foundation
+import Testing
 @testable import TotalPhotoBooth
 
 @MainActor
-final class ReportViewModelTests: XCTestCase {
-    func testLoadReportProducesReportFromRepositorySessions() async {
+struct ReportViewModelTests {
+    @Test func loadReportProducesReportFromRepositorySessions() async {
         let reference = Date()
         let repository = InMemoryPhotoSessionRepository(sessions: [
             PhotoSession(timestamp: reference),
@@ -13,26 +14,26 @@ final class ReportViewModelTests: XCTestCase {
 
         await viewModel.loadReport()
 
-        XCTAssertEqual(viewModel.report?.totalSessions, 2)
+        #expect(viewModel.report?.totalSessions == 2)
     }
 
-    func testLoadReportSetsErrorMessageOnFailure() async {
+    @Test func loadReportSetsErrorMessageOnFailure() async {
         let repository = InMemoryPhotoSessionRepository()
         repository.fetchError = URLError(.badServerResponse)
         let viewModel = ReportViewModel(repository: repository)
 
         await viewModel.loadReport()
 
-        XCTAssertNil(viewModel.report)
-        XCTAssertNotNil(viewModel.errorMessage)
+        #expect(viewModel.report == nil)
+        #expect(viewModel.errorMessage != nil)
     }
 
-    func testIsLoadingResetsAfterLoadCompletes() async {
+    @Test func isLoadingResetsAfterLoadCompletes() async {
         let repository = InMemoryPhotoSessionRepository()
         let viewModel = ReportViewModel(repository: repository)
 
         await viewModel.loadReport()
 
-        XCTAssertFalse(viewModel.isLoading)
+        #expect(!viewModel.isLoading)
     }
 }
