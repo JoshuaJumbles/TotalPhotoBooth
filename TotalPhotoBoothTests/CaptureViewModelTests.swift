@@ -7,11 +7,12 @@ struct CaptureViewModelTests {
     @Test func fullSequenceCapturesAllPhotosInOrder() async {
         let cameraService = FakeCameraCaptureService(imageData: Data([0xAA]))
         var completedPhotos: [CapturedPhoto]?
+        var tickCount = 0
         let viewModel = CaptureViewModel(
             mode: .fullSequence,
             existingPhotos: [],
             cameraService: cameraService,
-            countdownTick: {},
+            countdownTick: { tickCount += 1 },
             onComplete: { completedPhotos = $0 }
         )
 
@@ -22,6 +23,9 @@ struct CaptureViewModelTests {
         #expect(viewModel.capturedPhotos.allSatisfy { $0.imageData == Data([0xAA]) })
         #expect(cameraService.captureCount == CaptureViewModel.totalPhotos)
         #expect(completedPhotos?.count == CaptureViewModel.totalPhotos)
+        // 3 countdown ticks per photo, plus a pacing tick between each pair of photos
+        // (not after the last one): 4*3 + 3 = 15.
+        #expect(tickCount == CaptureViewModel.totalPhotos * 3 + (CaptureViewModel.totalPhotos - 1))
     }
 
     @Test func retakeOnlyRecapturesTargetedIndex() async {
@@ -30,12 +34,13 @@ struct CaptureViewModelTests {
         }
         let originalIDs = existingPhotos.map(\.id)
         let cameraService = FakeCameraCaptureService()
+        var tickCount = 0
 
         let viewModel = CaptureViewModel(
             mode: .retake(index: 2),
             existingPhotos: existingPhotos,
             cameraService: cameraService,
-            countdownTick: {},
+            countdownTick: { tickCount += 1 },
             onComplete: { _ in }
         )
 
@@ -47,6 +52,8 @@ struct CaptureViewModelTests {
         #expect(viewModel.capturedPhotos[1].id == originalIDs[1])
         #expect(viewModel.capturedPhotos[3].id == originalIDs[3])
         #expect(cameraService.captureCount == 1)
+        // Just the 3 countdown ticks -- no pacing delay after a single retake.
+        #expect(tickCount == 3)
     }
 
     @Test func captureFailureSetsErrorMessageAndHaltsSequence() async {

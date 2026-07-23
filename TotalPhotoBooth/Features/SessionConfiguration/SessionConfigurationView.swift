@@ -9,7 +9,7 @@ struct SessionConfigurationView: View {
                 .font(.system(size: 64))
                 .foregroundStyle(.tint)
 
-            Text("\(viewModel.sessionCount) photo\(viewModel.sessionCount == 1 ? "" : "s") taken")
+            Text("\(viewModel.sessionCount) completed session\(viewModel.sessionCount == 1 ? "" : "s")")
                 .font(.title2)
 
             Button {

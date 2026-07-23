@@ -48,7 +48,7 @@ final class CaptureViewModel {
             indices = [index]
         }
 
-        for index in indices {
+        for (position, index) in indices.enumerated() {
             activeIndex = index
             for remaining in stride(from: 3, through: 1, by: -1) {
                 countdownValue = remaining
@@ -67,6 +67,11 @@ final class CaptureViewModel {
             } catch {
                 errorMessage = error.localizedDescription
                 return
+            }
+
+            let isLastPhoto = position == indices.count - 1
+            if !isLastPhoto {
+                await countdownTick()
             }
         }
 
