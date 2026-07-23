@@ -1,44 +1,45 @@
-import XCTest
+import Foundation
+import Testing
 @testable import TotalPhotoBooth
 
 @MainActor
-final class CaptureViewModelTests: XCTestCase {
-    func testLoadInitialCountReflectsExistingSessions() async {
+struct CaptureViewModelTests {
+    @Test func loadInitialCountReflectsExistingSessions() async {
         let repository = InMemoryPhotoSessionRepository(sessions: [PhotoSession(), PhotoSession()])
         let viewModel = CaptureViewModel(repository: repository)
 
         await viewModel.loadInitialCount()
 
-        XCTAssertEqual(viewModel.sessionCount, 2)
+        #expect(viewModel.sessionCount == 2)
     }
 
-    func testCapturePhotoSavesSessionAndIncrementsCount() async {
+    @Test func capturePhotoSavesSessionAndIncrementsCount() async {
         let repository = InMemoryPhotoSessionRepository()
         let viewModel = CaptureViewModel(repository: repository)
 
         await viewModel.capturePhoto()
 
-        XCTAssertEqual(viewModel.sessionCount, 1)
-        XCTAssertEqual(repository.sessions.count, 1)
+        #expect(viewModel.sessionCount == 1)
+        #expect(repository.sessions.count == 1)
     }
 
-    func testCapturePhotoSetsErrorMessageOnFailure() async {
+    @Test func capturePhotoSetsErrorMessageOnFailure() async {
         let repository = InMemoryPhotoSessionRepository()
         repository.saveError = URLError(.badServerResponse)
         let viewModel = CaptureViewModel(repository: repository)
 
         await viewModel.capturePhoto()
 
-        XCTAssertEqual(viewModel.sessionCount, 0)
-        XCTAssertNotNil(viewModel.errorMessage)
+        #expect(viewModel.sessionCount == 0)
+        #expect(viewModel.errorMessage != nil)
     }
 
-    func testIsSavingResetsAfterCaptureCompletes() async {
+    @Test func isSavingResetsAfterCaptureCompletes() async {
         let repository = InMemoryPhotoSessionRepository()
         let viewModel = CaptureViewModel(repository: repository)
 
         await viewModel.capturePhoto()
 
-        XCTAssertFalse(viewModel.isSaving)
+        #expect(!viewModel.isSaving)
     }
 }

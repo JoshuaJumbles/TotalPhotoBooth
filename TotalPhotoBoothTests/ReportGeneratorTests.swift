@@ -1,25 +1,26 @@
-import XCTest
+import Foundation
+import Testing
 @testable import TotalPhotoBooth
 
-final class ReportGeneratorTests: XCTestCase {
+struct ReportGeneratorTests {
     private let calendar = Calendar(identifier: .gregorian)
 
     private func date(daysAgo: Int, from reference: Date) -> Date {
         calendar.date(byAdding: .day, value: -daysAgo, to: reference)!
     }
 
-    func testEmptyInputProducesZeroedSevenDayWindow() {
+    @Test func emptyInputProducesZeroedSevenDayWindow() {
         let reference = Date()
         let generator = ReportGenerator(calendar: calendar, dayWindow: 7)
 
         let report = generator.generateReport(from: [], referenceDate: reference)
 
-        XCTAssertEqual(report.totalSessions, 0)
-        XCTAssertEqual(report.dailyCounts.count, 7)
-        XCTAssertTrue(report.dailyCounts.allSatisfy { $0.count == 0 })
+        #expect(report.totalSessions == 0)
+        #expect(report.dailyCounts.count == 7)
+        #expect(report.dailyCounts.allSatisfy { $0.count == 0 })
     }
 
-    func testTotalSessionsCountsAllSessionsRegardlessOfWindow() {
+    @Test func totalSessionsCountsAllSessionsRegardlessOfWindow() {
         let reference = Date()
         let oldSession = PhotoSession(timestamp: date(daysAgo: 30, from: reference))
         let recentSession = PhotoSession(timestamp: reference)
@@ -27,10 +28,10 @@ final class ReportGeneratorTests: XCTestCase {
 
         let report = generator.generateReport(from: [oldSession, recentSession], referenceDate: reference)
 
-        XCTAssertEqual(report.totalSessions, 2)
+        #expect(report.totalSessions == 2)
     }
 
-    func testMultipleSessionsSameDayAreGrouped() {
+    @Test func multipleSessionsSameDayAreGrouped() {
         let reference = Date()
         let sessions = [
             PhotoSession(timestamp: reference),
@@ -41,27 +42,27 @@ final class ReportGeneratorTests: XCTestCase {
 
         let report = generator.generateReport(from: sessions, referenceDate: reference)
 
-        XCTAssertEqual(report.dailyCounts.last?.count, 3)
+        #expect(report.dailyCounts.last?.count == 3)
     }
 
-    func testSessionOutsideWindowIsExcludedFromDailyCounts() {
+    @Test func sessionOutsideWindowIsExcludedFromDailyCounts() {
         let reference = Date()
         let outsideWindow = PhotoSession(timestamp: date(daysAgo: 10, from: reference))
         let generator = ReportGenerator(calendar: calendar, dayWindow: 7)
 
         let report = generator.generateReport(from: [outsideWindow], referenceDate: reference)
 
-        XCTAssertEqual(report.totalSessions, 1)
-        XCTAssertTrue(report.dailyCounts.allSatisfy { $0.count == 0 })
+        #expect(report.totalSessions == 1)
+        #expect(report.dailyCounts.allSatisfy { $0.count == 0 })
     }
 
-    func testDailyCountsAreOrderedOldestToNewestEndingToday() {
+    @Test func dailyCountsAreOrderedOldestToNewestEndingToday() {
         let reference = calendar.startOfDay(for: Date())
         let generator = ReportGenerator(calendar: calendar, dayWindow: 7)
 
         let report = generator.generateReport(from: [], referenceDate: reference)
 
-        XCTAssertEqual(report.dailyCounts.last?.date, reference)
-        XCTAssertEqual(report.dailyCounts.first?.date, date(daysAgo: 6, from: reference))
+        #expect(report.dailyCounts.last?.date == reference)
+        #expect(report.dailyCounts.first?.date == date(daysAgo: 6, from: reference))
     }
 }
