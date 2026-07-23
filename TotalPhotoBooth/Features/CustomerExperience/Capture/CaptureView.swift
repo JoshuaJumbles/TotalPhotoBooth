@@ -19,5 +19,14 @@ struct CaptureView: View {
         }
         .padding()
         .task { await viewModel.beginCaptureSequence() }
+        .alert(
+            "Error",
+            isPresented: Binding(
+                get: { viewModel.errorMessage != nil },
+                set: { if !$0 { viewModel.errorMessage = nil } }
+            ),
+            actions: { Button("OK") { viewModel.errorMessage = nil } },
+            message: { Text(viewModel.errorMessage ?? "") }
+        )
     }
 }

@@ -5,11 +5,14 @@ import Testing
 @MainActor
 struct CaptureViewModelTests {
     @Test func fullSequenceCapturesAllPhotosInOrder() async {
+        let cameraService = FakeCameraCaptureService(imageData: Data([0xAA]))
         var completedPhotos: [CapturedPhoto]?
+        var tickCount = 0
         let viewModel = CaptureViewModel(
             mode: .fullSequence,
             existingPhotos: [],
-            countdownTick: {},
+            cameraService: cameraService,
+            countdownTick: { tickCount += 1 },
             onComplete: { completedPhotos = $0 }
         )
 
@@ -17,17 +20,27 @@ struct CaptureViewModelTests {
 
         #expect(viewModel.capturedPhotos.count == CaptureViewModel.totalPhotos)
         #expect(viewModel.capturedPhotos.map(\.index) == [0, 1, 2, 3])
+        #expect(viewModel.capturedPhotos.allSatisfy { $0.imageData == Data([0xAA]) })
+        #expect(cameraService.captureCount == CaptureViewModel.totalPhotos)
         #expect(completedPhotos?.count == CaptureViewModel.totalPhotos)
+        // 3 countdown ticks per photo, plus a pacing tick between each pair of photos
+        // (not after the last one): 4*3 + 3 = 15.
+        #expect(tickCount == CaptureViewModel.totalPhotos * 3 + (CaptureViewModel.totalPhotos - 1))
     }
 
     @Test func retakeOnlyRecapturesTargetedIndex() async {
-        let existingPhotos = (0..<CaptureViewModel.totalPhotos).map { CapturedPhoto(index: $0) }
+        let existingPhotos = (0..<CaptureViewModel.totalPhotos).map {
+            CapturedPhoto(index: $0, imageData: Data())
+        }
         let originalIDs = existingPhotos.map(\.id)
+        let cameraService = FakeCameraCaptureService()
+        var tickCount = 0
 
         let viewModel = CaptureViewModel(
             mode: .retake(index: 2),
             existingPhotos: existingPhotos,
-            countdownTick: {},
+            cameraService: cameraService,
+            countdownTick: { tickCount += 1 },
             onComplete: { _ in }
         )
 
@@ -38,5 +51,29 @@ struct CaptureViewModelTests {
         #expect(viewModel.capturedPhotos[0].id == originalIDs[0])
         #expect(viewModel.capturedPhotos[1].id == originalIDs[1])
         #expect(viewModel.capturedPhotos[3].id == originalIDs[3])
+        #expect(cameraService.captureCount == 1)
+        // Just the 3 countdown ticks -- no pacing delay after a single retake.
+        #expect(tickCount == 3)
+    }
+
+    @Test func captureFailureSetsErrorMessageAndHaltsSequence() async {
+        let cameraService = FakeCameraCaptureService()
+        cameraService.captureError = CameraCaptureError.captureFailed
+        var completed = false
+
+        let viewModel = CaptureViewModel(
+            mode: .fullSequence,
+            existingPhotos: [],
+            cameraService: cameraService,
+            countdownTick: {},
+            onComplete: { _ in completed = true }
+        )
+
+        await viewModel.beginCaptureSequence()
+
+        #expect(viewModel.errorMessage != nil)
+        #expect(viewModel.capturedPhotos.isEmpty)
+        #expect(cameraService.captureCount == 1)
+        #expect(!completed)
     }
 }

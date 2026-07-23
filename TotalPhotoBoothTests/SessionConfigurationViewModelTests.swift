@@ -6,7 +6,7 @@ import Testing
 struct SessionConfigurationViewModelTests {
     @Test func loadInitialCountReflectsExistingSessions() async {
         let repository = InMemoryPhotoSessionRepository(sessions: [PhotoSession(), PhotoSession()])
-        let viewModel = SessionConfigurationViewModel(repository: repository)
+        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: FakeCameraCaptureService())
 
         await viewModel.loadInitialCount()
 
@@ -15,7 +15,7 @@ struct SessionConfigurationViewModelTests {
 
     @Test func startKioskModePresentsCustomerExperience() {
         let repository = InMemoryPhotoSessionRepository()
-        let viewModel = SessionConfigurationViewModel(repository: repository)
+        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: FakeCameraCaptureService())
 
         viewModel.startKioskMode()
 
@@ -24,7 +24,7 @@ struct SessionConfigurationViewModelTests {
 
     @Test func endKioskModeDismissesCustomerExperienceAndRefreshesCount() async {
         let repository = InMemoryPhotoSessionRepository(sessions: [PhotoSession()])
-        let viewModel = SessionConfigurationViewModel(repository: repository)
+        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: FakeCameraCaptureService())
         viewModel.startKioskMode()
 
         await viewModel.endKioskMode()

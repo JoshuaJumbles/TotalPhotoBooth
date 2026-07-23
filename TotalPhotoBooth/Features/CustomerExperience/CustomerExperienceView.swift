@@ -14,7 +14,7 @@ struct CustomerExperienceView: View {
 
         case .capture(let mode, let existingPhotos):
             CaptureView(
-                viewModel: CaptureViewModel(
+                viewModel: viewModel.makeCaptureViewModel(
                     mode: mode,
                     existingPhotos: existingPhotos,
                     onComplete: { photos in viewModel.captureSequenceCompleted(photos: photos) }

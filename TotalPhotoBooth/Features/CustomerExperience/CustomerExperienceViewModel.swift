@@ -12,9 +12,11 @@ final class CustomerExperienceViewModel {
     private(set) var step: FlowStep = .attract
 
     private let repository: PhotoSessionRepositoryProtocol
+    private let cameraService: CameraCaptureServiceProtocol
 
-    init(repository: PhotoSessionRepositoryProtocol) {
+    init(repository: PhotoSessionRepositoryProtocol, cameraService: CameraCaptureServiceProtocol) {
         self.repository = repository
+        self.cameraService = cameraService
     }
 
     func startSession() {
@@ -27,6 +29,19 @@ final class CustomerExperienceViewModel {
 
     func retake(index: Int, currentPhotos: [CapturedPhoto]) {
         step = .capture(mode: .retake(index: index), existingPhotos: currentPhotos)
+    }
+
+    func makeCaptureViewModel(
+        mode: CaptureViewModel.Mode,
+        existingPhotos: [CapturedPhoto],
+        onComplete: @escaping ([CapturedPhoto]) -> Void
+    ) -> CaptureViewModel {
+        CaptureViewModel(
+            mode: mode,
+            existingPhotos: existingPhotos,
+            cameraService: cameraService,
+            onComplete: onComplete
+        )
     }
 
     func confirmAndSave() async throws {
