@@ -13,9 +13,9 @@ struct SessionConfigurationView: View {
                 .font(.title2)
 
             Button {
-                viewModel.startSession()
+                viewModel.startKioskMode()
             } label: {
-                Text("Start Session")
+                Text("Start Kiosk Mode")
                     .font(.headline)
                     .frame(minWidth: 160)
             }
@@ -34,15 +34,15 @@ struct SessionConfigurationView: View {
         )
         .fullScreenCover(
             isPresented: Binding(
-                get: { viewModel.isPresentingCapture },
+                get: { viewModel.isPresentingCustomerExperience },
                 set: { isPresented in
                     if !isPresented {
-                        Task { await viewModel.endSession() }
+                        Task { await viewModel.endKioskMode() }
                     }
                 }
             )
         ) {
-            CaptureView(viewModel: viewModel.makeCaptureViewModel())
+            CustomerExperienceView(viewModel: viewModel.makeCustomerExperienceViewModel())
         }
     }
 }

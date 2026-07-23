@@ -4,33 +4,39 @@ import Testing
 
 @MainActor
 struct CaptureViewModelTests {
-    @Test func capturePhotoSavesSessionAndIncrementsCount() async {
-        let repository = InMemoryPhotoSessionRepository()
-        let viewModel = CaptureViewModel(repository: repository)
+    @Test func fullSequenceCapturesAllPhotosInOrder() async {
+        var completedPhotos: [CapturedPhoto]?
+        let viewModel = CaptureViewModel(
+            mode: .fullSequence,
+            existingPhotos: [],
+            countdownTick: {},
+            onComplete: { completedPhotos = $0 }
+        )
 
-        await viewModel.capturePhoto()
+        await viewModel.beginCaptureSequence()
 
-        #expect(viewModel.capturedCount == 1)
-        #expect(repository.sessions.count == 1)
+        #expect(viewModel.capturedPhotos.count == CaptureViewModel.totalPhotos)
+        #expect(viewModel.capturedPhotos.map(\.index) == [0, 1, 2, 3])
+        #expect(completedPhotos?.count == CaptureViewModel.totalPhotos)
     }
 
-    @Test func capturePhotoSetsErrorMessageOnFailure() async {
-        let repository = InMemoryPhotoSessionRepository()
-        repository.saveError = URLError(.badServerResponse)
-        let viewModel = CaptureViewModel(repository: repository)
+    @Test func retakeOnlyRecapturesTargetedIndex() async {
+        let existingPhotos = (0..<CaptureViewModel.totalPhotos).map { CapturedPhoto(index: $0) }
+        let originalIDs = existingPhotos.map(\.id)
 
-        await viewModel.capturePhoto()
+        let viewModel = CaptureViewModel(
+            mode: .retake(index: 2),
+            existingPhotos: existingPhotos,
+            countdownTick: {},
+            onComplete: { _ in }
+        )
 
-        #expect(viewModel.capturedCount == 0)
-        #expect(viewModel.errorMessage != nil)
-    }
+        await viewModel.beginCaptureSequence()
 
-    @Test func isSavingResetsAfterCaptureCompletes() async {
-        let repository = InMemoryPhotoSessionRepository()
-        let viewModel = CaptureViewModel(repository: repository)
-
-        await viewModel.capturePhoto()
-
-        #expect(!viewModel.isSaving)
+        #expect(viewModel.capturedPhotos.count == CaptureViewModel.totalPhotos)
+        #expect(viewModel.capturedPhotos[2].id != originalIDs[2])
+        #expect(viewModel.capturedPhotos[0].id == originalIDs[0])
+        #expect(viewModel.capturedPhotos[1].id == originalIDs[1])
+        #expect(viewModel.capturedPhotos[3].id == originalIDs[3])
     }
 }
