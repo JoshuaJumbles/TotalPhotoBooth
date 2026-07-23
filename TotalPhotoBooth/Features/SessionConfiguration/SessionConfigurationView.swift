@@ -13,13 +13,18 @@ struct SessionConfigurationView: View {
                 .font(.title2)
 
             Button {
-                viewModel.startKioskMode()
+                Task { await viewModel.startKioskMode() }
             } label: {
-                Text("Start Kiosk Mode")
-                    .font(.headline)
-                    .frame(minWidth: 160)
+                if viewModel.isStartingKioskMode {
+                    ProgressView()
+                } else {
+                    Text("Start Kiosk Mode")
+                        .font(.headline)
+                        .frame(minWidth: 160)
+                }
             }
             .buttonStyle(.borderedProminent)
+            .disabled(viewModel.isStartingKioskMode)
         }
         .padding()
         .task { await viewModel.loadInitialCount() }

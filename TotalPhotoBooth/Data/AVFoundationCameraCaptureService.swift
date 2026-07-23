@@ -1,10 +1,12 @@
 import AVFoundation
+import UIKit
 
 enum CameraCaptureError: LocalizedError {
     case permissionDenied
     case deviceUnavailable
     case configurationFailed
     case captureFailed
+    case sessionNotStarted
 
     var errorDescription: String? {
         switch self {
@@ -16,6 +18,8 @@ enum CameraCaptureError: LocalizedError {
             return "The camera could not be configured."
         case .captureFailed:
             return "The photo could not be captured."
+        case .sessionNotStarted:
+            return "The camera session hasn't been started yet."
         }
     }
 }
@@ -26,15 +30,31 @@ final class AVFoundationCameraCaptureService: NSObject, CameraCaptureServiceProt
     private var isConfigured = false
     private var continuation: CheckedContinuation<Data, Error>?
 
-    func capturePhoto() async throws -> Data {
+    func startHardwareSession() async throws {
         try await configureSessionIfNeeded()
         if !session.isRunning {
             session.startRunning()
+        }
+    }
+
+    func endHardwareSession() {
+        if session.isRunning {
+            session.stopRunning()
+        }
+    }
+
+    func capturePhoto() async throws -> Data {
+        guard isConfigured, session.isRunning else {
+            throw CameraCaptureError.sessionNotStarted
         }
         return try await withCheckedThrowingContinuation { continuation in
             self.continuation = continuation
             photoOutput.capturePhoto(with: AVCapturePhotoSettings(), delegate: self)
         }
+    }
+
+    func makePreviewView() -> UIView {
+        VideoPreviewUIView(session: session)
     }
 
     private func configureSessionIfNeeded() async throws {
@@ -75,5 +95,23 @@ extension AVFoundationCameraCaptureService: AVCapturePhotoCaptureDelegate {
         } else {
             continuation?.resume(throwing: CameraCaptureError.captureFailed)
         }
+    }
+}
+
+private final class VideoPreviewUIView: UIView {
+    override class var layerClass: AnyClass { AVCaptureVideoPreviewLayer.self }
+
+    private var previewLayer: AVCaptureVideoPreviewLayer {
+        layer as! AVCaptureVideoPreviewLayer
+    }
+
+    init(session: AVCaptureSession) {
+        super.init(frame: .zero)
+        previewLayer.session = session
+        previewLayer.videoGravity = .resizeAspectFill
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 }

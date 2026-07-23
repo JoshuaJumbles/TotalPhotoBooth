@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 @Observable
 final class CustomerExperienceViewModel {
@@ -10,6 +11,7 @@ final class CustomerExperienceViewModel {
     }
 
     private(set) var step: FlowStep = .attract
+    let previewView: UIView
 
     private let repository: PhotoSessionRepositoryProtocol
     private let cameraService: CameraCaptureServiceProtocol
@@ -17,6 +19,7 @@ final class CustomerExperienceViewModel {
     init(repository: PhotoSessionRepositoryProtocol, cameraService: CameraCaptureServiceProtocol) {
         self.repository = repository
         self.cameraService = cameraService
+        self.previewView = cameraService.makePreviewView()
     }
 
     func startSession() {

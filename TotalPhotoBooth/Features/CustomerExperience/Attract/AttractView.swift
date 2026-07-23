@@ -1,30 +1,36 @@
 import SwiftUI
+import UIKit
 
 struct AttractView: View {
+    let previewView: UIView
     let onStart: () -> Void
     let onExitKioskMode: () -> Void
 
     var body: some View {
-        VStack(spacing: 24) {
-            Image(systemName: "camera.fill")
-                .font(.system(size: 96))
-                .foregroundStyle(.tint)
+        ZStack {
+            CameraPreviewView(previewView: previewView)
+                .ignoresSafeArea()
 
-            Text("Welcome!")
-                .font(.largeTitle.bold())
+            Color.black.opacity(0.35)
+                .ignoresSafeArea()
 
-            Button(action: onStart) {
-                Text("Tap to Start")
-                    .font(.title2)
-                    .frame(minWidth: 220)
+            VStack(spacing: 24) {
+                Text("Welcome!")
+                    .font(.largeTitle.bold())
+                    .foregroundStyle(.white)
+
+                Button(action: onStart) {
+                    Text("Tap to Start")
+                        .font(.title2)
+                        .frame(minWidth: 220)
+                }
+                .buttonStyle(.borderedProminent)
             }
-            .buttonStyle(.borderedProminent)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .overlay(alignment: .topTrailing) {
             Button("Exit Kiosk Mode", action: onExitKioskMode)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.white)
                 .padding()
         }
     }
