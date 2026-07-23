@@ -11,6 +11,7 @@ import SwiftData
 @main
 struct TotalPhotoBoothApp: App {
     private let repository: SwiftDataPhotoSessionRepository
+    private let cameraService: CameraCaptureServiceProtocol
 
     init() {
         let modelContainer: ModelContainer
@@ -20,12 +21,21 @@ struct TotalPhotoBoothApp: App {
             fatalError("Failed to create ModelContainer: \(error)")
         }
         repository = SwiftDataPhotoSessionRepository(modelContainer: modelContainer)
+
+        #if targetEnvironment(simulator)
+        cameraService = SimulatedCameraCaptureService()
+        #else
+        cameraService = AVFoundationCameraCaptureService()
+        #endif
     }
 
     var body: some Scene {
         WindowGroup {
             RootView(
-                sessionConfigurationViewModel: SessionConfigurationViewModel(repository: repository),
+                sessionConfigurationViewModel: SessionConfigurationViewModel(
+                    repository: repository,
+                    cameraService: cameraService
+                ),
                 reportViewModel: ReportViewModel(repository: repository)
             )
         }

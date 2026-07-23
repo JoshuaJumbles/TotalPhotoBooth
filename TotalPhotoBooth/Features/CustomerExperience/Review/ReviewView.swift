@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct ReviewView: View {
     let viewModel: ReviewViewModel
@@ -13,9 +14,17 @@ struct ReviewView: View {
             LazyVGrid(columns: columns, spacing: 16) {
                 ForEach(viewModel.photos) { photo in
                     VStack(spacing: 8) {
-                        Image(systemName: "photo.fill")
-                            .font(.system(size: 48))
-                            .foregroundStyle(.tint)
+                        if let uiImage = UIImage(data: photo.imageData) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 120, height: 120)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        } else {
+                            Image(systemName: "photo.fill")
+                                .font(.system(size: 48))
+                                .foregroundStyle(.tint)
+                        }
                         Button("Retake") {
                             viewModel.retake(at: photo.index)
                         }
