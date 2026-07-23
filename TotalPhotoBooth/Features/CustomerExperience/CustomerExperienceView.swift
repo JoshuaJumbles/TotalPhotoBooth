@@ -8,6 +8,7 @@ struct CustomerExperienceView: View {
         switch viewModel.step {
         case .attract:
             AttractView(
+                previewView: viewModel.previewView,
                 onStart: { viewModel.startSession() },
                 onExitKioskMode: { dismiss() }
             )
@@ -18,7 +19,8 @@ struct CustomerExperienceView: View {
                     mode: mode,
                     existingPhotos: existingPhotos,
                     onComplete: { photos in viewModel.captureSequenceCompleted(photos: photos) }
-                )
+                ),
+                previewView: viewModel.previewView
             )
 
         case .review(let photos):
