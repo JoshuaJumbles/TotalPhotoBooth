@@ -2,9 +2,11 @@ import SwiftUI
 
 struct SuccessView: View {
     let onDone: () -> Void
+    let photoStripImage: UIImage
 
     var body: some View {
         VStack(spacing: 24) {
+            Image(uiImage: photoStripImage)
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 96))
                 .foregroundStyle(.green)
