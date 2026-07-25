@@ -36,16 +36,16 @@ enum CompositeImageRendererService {
     static var buffer: CGFloat { ppi * bufferInches }
 
     //Per the design spec from old photo booth app
-    static let pictureAspectRatio: CGFloat = 500 / 580
+    static let pictureAspectRatio: CGFloat = 580 / 500
 
     // The booth's camera is mounted low, so a centered crop risks cutting
     // off heads -- keep the top of the frame instead.
-    static let pictureCropAlignment: CropVerticalAlignment = .top
+    static let pictureCropAlignment: CropVerticalAlignment = .center
 
     static var pictureWidth: CGFloat {
         (printWidth / 2) - (2 * buffer)
     }
-    static var pictureHeight: CGFloat { pictureWidth * pictureAspectRatio }
+    static var pictureHeight: CGFloat { pictureWidth / pictureAspectRatio }
 
     static let brandImage = UIImage(named: "TotalRecallLogoQRCombo")
 
