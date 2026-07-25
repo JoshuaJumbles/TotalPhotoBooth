@@ -14,7 +14,7 @@ struct CaptureView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 24) {
-                Text("Photo \(viewModel.activeIndex + 1) of \(viewModel.totalPhotos)")
+                Text("Photo \(viewModel.activeIndex + 1) of \(CompositeImageRendererService.totalPhotos)")
                     .font(.headline)
                     .foregroundStyle(.white)
 

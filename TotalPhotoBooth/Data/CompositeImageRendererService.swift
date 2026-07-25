@@ -8,45 +8,45 @@
 import SwiftUI
 import UIKit
 
-struct CompositeImageRendererService {
-    let ppi: CGFloat = 160
-    
-    let totalPhotos: Int = 3
+enum CompositeImageRendererService {
+    static let ppi: CGFloat = 160
 
-    let printWidthInches: CGFloat = 4
-    let printHeightInches: CGFloat = 6
-    let bufferInches: CGFloat = 0.1
+    static let totalPhotos: Int = 3
 
-    var printWidth: CGFloat { ppi * printWidthInches }
-    var printHeight: CGFloat { ppi * printHeightInches }
-    var buffer: CGFloat { ppi * bufferInches }
+    static let printWidthInches: CGFloat = 4
+    static let printHeightInches: CGFloat = 6
+    static let bufferInches: CGFloat = 0.1
+
+    static var printWidth: CGFloat { ppi * printWidthInches }
+    static var printHeight: CGFloat { ppi * printHeightInches }
+    static var buffer: CGFloat { ppi * bufferInches }
 
     //Per the design spec from old photo booth app
-    let pictureAspectRatio: CGFloat = 500 / 580
-    
-    var pictureWidth: CGFloat {
+    static let pictureAspectRatio: CGFloat = 500 / 580
+
+    static var pictureWidth: CGFloat {
         (printWidth / 2) - (2 * buffer)
     }
-    var pictureHeight: CGFloat { pictureWidth * pictureAspectRatio }
+    static var pictureHeight: CGFloat { pictureWidth * pictureAspectRatio }
 
-    let brandImage = UIImage(named: "TotalRecallLogoQRCombo")
-    
-    var brandImageWidth: CGFloat {
+    static let brandImage = UIImage(named: "TotalRecallLogoQRCombo")
+
+    static var brandImageWidth: CGFloat {
         pictureWidth
     }
-    var brandImageHeight: CGFloat {
+    static var brandImageHeight: CGFloat {
         guard let brandImage = brandImage else { return 0 }
         let aspectRatio = brandImage.size.height / brandImage.size.width
         return brandImageWidth * aspectRatio
     }
-    var brandImageY: CGFloat {
+    static var brandImageY: CGFloat {
         let i:CGFloat = CGFloat(totalPhotos)
         let h = (printHeight - buffer * i - pictureHeight * i)
         let yOffset = (h - brandImageHeight) / 2
         return (printHeight - h) + yOffset
     }
 
-    func makeDoublePhotoStrip(photoData: [Data]) -> UIImage {
+    static func makeDoublePhotoStrip(photoData: [Data]) -> UIImage {
         let renderer = UIGraphicsImageRenderer(
             size: CGSize(
                 width: printWidth,
@@ -71,7 +71,7 @@ struct CompositeImageRendererService {
         return image
     }
 
-    func makeSinglePhotoStrip(photoData: [Data]) -> UIImage {
+    static func makeSinglePhotoStrip(photoData: [Data]) -> UIImage {
         let renderer = UIGraphicsImageRenderer(
             size: CGSize(
                 width: printWidth / 2,
@@ -118,14 +118,12 @@ struct CompositeImageRendererService {
 }
 
 #Preview {
-    let imageService = CompositeImageRendererService()
-
     let photoImages: [UIImage?] = [
         UIImage(color: .red), UIImage(color: .green), UIImage(color: .blue),
     ]
     let photoData = photoImages.map { $0!.pngData()! }
     VStack {
-        Image(uiImage: imageService.makeDoublePhotoStrip(photoData: photoData))
+        Image(uiImage: CompositeImageRendererService.makeDoublePhotoStrip(photoData: photoData))
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .background(.indigo)

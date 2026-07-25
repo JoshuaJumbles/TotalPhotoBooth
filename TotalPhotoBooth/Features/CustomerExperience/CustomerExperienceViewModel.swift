@@ -15,14 +15,11 @@ final class CustomerExperienceViewModel {
 
     private let repository: PhotoSessionRepositoryProtocol
     private let cameraService: CameraCaptureServiceProtocol
-    private let imageService: CompositeImageRendererService
 
     init(repository: PhotoSessionRepositoryProtocol,
-         cameraService: CameraCaptureServiceProtocol,
-         imageService: CompositeImageRendererService) {
+         cameraService: CameraCaptureServiceProtocol) {
         self.repository = repository
         self.cameraService = cameraService
-        self.imageService = imageService
         self.previewView = cameraService.makePreviewView()
     }
 
@@ -47,14 +44,13 @@ final class CustomerExperienceViewModel {
             mode: mode,
             existingPhotos: existingPhotos,
             cameraService: cameraService,
-            onComplete: onComplete,
-            totalPhotos: imageService.totalPhotos
+            onComplete: onComplete
         )
     }
 
     func confirmAndSave(photos: [CapturedPhoto]) async throws {
         try await repository.save(PhotoSession())
-        step = .success(photoStrip: imageService.makeDoublePhotoStrip(photoData: photos.map{$0.imageData}))
+        step = .success(photoStrip: CompositeImageRendererService.makeDoublePhotoStrip(photoData: photos.map { $0.imageData }))
     }
 
     func finishSession() {

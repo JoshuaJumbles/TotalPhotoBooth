@@ -8,19 +8,14 @@ import UIKit
 struct CustomerExperienceViewModelTests {
     @Test func startsAtAttract() {
         let repository = InMemoryPhotoSessionRepository()
-        let viewModel = CustomerExperienceViewModel(repository: repository,
-                                                    cameraService: FakeCameraCaptureService(),
-                                                    imageService: CompositeImageRendererService())
+        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService())
 
         #expect(viewModel.step == .attract)
     }
 
     @Test func startSessionEntersFullSequenceCapture() {
         let repository = InMemoryPhotoSessionRepository()
-        let viewModel = CustomerExperienceViewModel(repository: repository,
-                                                    cameraService: FakeCameraCaptureService(),
-                                                    imageService: CompositeImageRendererService()
-        )
+        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService())
 
         viewModel.startSession()
 
@@ -29,12 +24,8 @@ struct CustomerExperienceViewModelTests {
 
     @Test func captureSequenceCompletedEntersReview() {
         let repository = InMemoryPhotoSessionRepository()
-        let imageService = CompositeImageRendererService()
-        let viewModel = CustomerExperienceViewModel(repository: repository,
-                                                    cameraService: FakeCameraCaptureService(),
-                                                    imageService: imageService
-        )
-        let photos = (0..<imageService.totalPhotos).map { CapturedPhoto(index: $0, imageData: Data()) }
+        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService())
+        let photos = (0..<CompositeImageRendererService.totalPhotos).map { CapturedPhoto(index: $0, imageData: Data()) }
 
         viewModel.captureSequenceCompleted(photos: photos)
 
@@ -43,12 +34,8 @@ struct CustomerExperienceViewModelTests {
 
     @Test func retakeEntersCaptureWithRetakeModeAndExistingPhotos() {
         let repository = InMemoryPhotoSessionRepository()
-        let imageService = CompositeImageRendererService()
-        let viewModel = CustomerExperienceViewModel(repository: repository,
-                                                    cameraService: FakeCameraCaptureService(),
-                                                    imageService: imageService
-        )
-        let photos = (0..<imageService.totalPhotos).map { CapturedPhoto(index: $0, imageData: Data()) }
+        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService())
+        let photos = (0..<CompositeImageRendererService.totalPhotos).map { CapturedPhoto(index: $0, imageData: Data()) }
 
         viewModel.retake(index: 1, currentPhotos: photos)
 
@@ -57,15 +44,11 @@ struct CustomerExperienceViewModelTests {
 
     @Test func confirmAndSaveSavesExactlyOnePhotoSessionAndEntersSuccess() async throws {
         let repository = InMemoryPhotoSessionRepository()
-        let imageService = CompositeImageRendererService()
-        let viewModel = CustomerExperienceViewModel(repository: repository,
-                                                    cameraService: FakeCameraCaptureService(),
-                                                    imageService: imageService
-        )
-        let photos = (0..<imageService.totalPhotos).map { CapturedPhoto(index: $0, imageData: Data()) }
+        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService())
+        let photos = (0..<CompositeImageRendererService.totalPhotos).map { CapturedPhoto(index: $0, imageData: Data()) }
 
         try await viewModel.confirmAndSave(photos: photos)
-        
+
         #expect(repository.sessions.count == 1)
         if case .success(let photoStrip) = viewModel.step {
             #expect(photoStrip.size.width > 0)
@@ -77,10 +60,7 @@ struct CustomerExperienceViewModelTests {
 
     @Test func finishSessionReturnsToAttract() {
         let repository = InMemoryPhotoSessionRepository()
-        let viewModel = CustomerExperienceViewModel(repository: repository,
-                                                    cameraService: FakeCameraCaptureService(),
-                                                    imageService: CompositeImageRendererService()
-        )
+        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService())
         viewModel.captureSequenceCompleted(photos: [])
 
         viewModel.finishSession()
