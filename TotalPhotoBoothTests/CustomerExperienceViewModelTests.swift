@@ -45,7 +45,8 @@ struct CustomerExperienceViewModelTests {
     @Test func confirmAndSaveSavesExactlyOnePhotoSessionAndEntersSuccess() async throws {
         let repository = InMemoryPhotoSessionRepository()
         let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService())
-        let photos = (0..<CompositeImageRendererService.totalPhotos).map { CapturedPhoto(index: $0, imageData: Data()) }
+        let sampleImageData = UIImage(color: .red)!.pngData()!
+        let photos = (0..<CompositeImageRendererService.totalPhotos).map { CapturedPhoto(index: $0, imageData: sampleImageData) }
 
         try await viewModel.confirmAndSave(photos: photos)
 

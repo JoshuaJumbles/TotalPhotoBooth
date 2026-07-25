@@ -8,6 +8,20 @@
 import SwiftUI
 import UIKit
 
+enum CompositeImageRenderError: LocalizedError {
+    case missingBrandImage
+    case invalidPhotoData(index: Int)
+
+    var errorDescription: String? {
+        switch self {
+        case .missingBrandImage:
+            return "The template branding image could not be loaded."
+        case .invalidPhotoData(let index):
+            return "Photo \(index + 1) could not be decoded."
+        }
+    }
+}
+
 enum CompositeImageRendererService {
     static let ppi: CGFloat = 160
 
@@ -46,15 +60,24 @@ enum CompositeImageRendererService {
         return (printHeight - h) + yOffset
     }
 
-    static func makeDoublePhotoStrip(photoData: [Data]) -> UIImage {
+    private static var pinnedScaleFormat: UIGraphicsImageRendererFormat {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        return format
+    }
+
+    static func makeDoublePhotoStrip(photoData: [Data]) throws -> UIImage {
+        let photoStripImage = try makeSinglePhotoStrip(photoData: photoData)
+
         let renderer = UIGraphicsImageRenderer(
             size: CGSize(
                 width: printWidth,
                 height: printHeight
-            )
+            ),
+            format: pinnedScaleFormat
         )
-        let photoStripImage = makeSinglePhotoStrip(photoData: photoData)
-        let image = renderer.image { (context) in
+
+        return renderer.image { (context) in
             UIColor.lightGray.setFill()
             context.fill(
                 CGRect(
@@ -67,19 +90,29 @@ enum CompositeImageRendererService {
             photoStripImage.draw(at: CGPoint(x: 0, y: 0))
             photoStripImage.draw(at: CGPoint(x: printWidth / 2, y: 0))
         }
-
-        return image
     }
 
-    static func makeSinglePhotoStrip(photoData: [Data]) -> UIImage {
+    static func makeSinglePhotoStrip(photoData: [Data]) throws -> UIImage {
+        guard let brandImage else {
+            throw CompositeImageRenderError.missingBrandImage
+        }
+
+        let photoImages = try photoData.enumerated().map { index, data -> UIImage in
+            guard let photoImage = UIImage(data: data) else {
+                throw CompositeImageRenderError.invalidPhotoData(index: index)
+            }
+            return photoImage
+        }
+
         let renderer = UIGraphicsImageRenderer(
             size: CGSize(
                 width: printWidth / 2,
                 height: printHeight
-            )
+            ),
+            format: pinnedScaleFormat
         )
 
-        let image = renderer.image { (context) in
+        return renderer.image { (context) in
             UIColor.white.setFill()
             context.fill(
                 CGRect(
@@ -90,8 +123,7 @@ enum CompositeImageRendererService {
                 )
             )
 
-            for (index, data) in photoData.enumerated() {
-                guard let photoImage = UIImage(data: data) else { return }
+            for (index, photoImage) in photoImages.enumerated() {
                 photoImage.draw(
                     in: CGRect(
                         x: buffer,
@@ -103,7 +135,7 @@ enum CompositeImageRendererService {
                 )
             }
 
-            brandImage!.draw(
+            brandImage.draw(
                 in: CGRect(
                     x: buffer,
                     y: brandImageY,
@@ -112,8 +144,6 @@ enum CompositeImageRendererService {
                 )
             )
         }
-
-        return image
     }
 }
 
@@ -123,7 +153,9 @@ enum CompositeImageRendererService {
     ]
     let photoData = photoImages.map { $0!.pngData()! }
     VStack {
-        Image(uiImage: CompositeImageRendererService.makeDoublePhotoStrip(photoData: photoData))
+        if let composite = try? CompositeImageRendererService.makeDoublePhotoStrip(photoData: photoData) {
+            Image(uiImage: composite)
+        }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .background(.indigo)

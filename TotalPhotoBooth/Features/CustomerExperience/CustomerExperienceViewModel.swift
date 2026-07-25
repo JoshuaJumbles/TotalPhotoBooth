@@ -50,7 +50,8 @@ final class CustomerExperienceViewModel {
 
     func confirmAndSave(photos: [CapturedPhoto]) async throws {
         try await repository.save(PhotoSession())
-        step = .success(photoStrip: CompositeImageRendererService.makeDoublePhotoStrip(photoData: photos.map { $0.imageData }))
+        let photoStrip = try CompositeImageRendererService.makeDoublePhotoStrip(photoData: photos.map { $0.imageData })
+        step = .success(photoStrip: photoStrip)
     }
 
     func finishSession() {
