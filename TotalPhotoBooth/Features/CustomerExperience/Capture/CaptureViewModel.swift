@@ -1,9 +1,18 @@
 import Foundation
+import UIKit
 
 struct CapturedPhoto: Identifiable, Equatable {
     let id = UUID()
     let index: Int
     let imageData: Data
+}
+
+private enum PhotoProcessingError: LocalizedError {
+    case invalidImageData
+
+    var errorDescription: String? {
+        "The captured photo could not be processed."
+    }
 }
 
 @Observable
@@ -55,7 +64,8 @@ final class CaptureViewModel {
             countdownValue = 0
 
             do {
-                let imageData = try await cameraService.capturePhoto()
+                let rawData = try await cameraService.capturePhoto()
+                let imageData = try processCapturedImageData(rawData)
                 let photo = CapturedPhoto(index: index, imageData: imageData)
                 if index < capturedPhotos.count {
                     capturedPhotos[index] = photo
@@ -74,5 +84,19 @@ final class CaptureViewModel {
         }
 
         onComplete(capturedPhotos)
+    }
+
+    private func processCapturedImageData(_ rawData: Data) throws -> Data {
+        guard let rawImage = UIImage(data: rawData) else {
+            throw PhotoProcessingError.invalidImageData
+        }
+        let croppedImage = rawImage.croppedToAspectRatio(
+            CompositeImageRendererService.pictureAspectRatio,
+            verticalAlignment: CompositeImageRendererService.pictureCropAlignment
+        )
+        guard let croppedData = croppedImage.jpegData(compressionQuality: 0.8) else {
+            throw PhotoProcessingError.invalidImageData
+        }
+        return croppedData
     }
 }

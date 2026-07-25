@@ -7,8 +7,11 @@ struct CaptureView: View {
 
     var body: some View {
         ZStack {
-            CameraPreviewView(previewView: previewView)
+            Color.black
                 .ignoresSafeArea()
+
+            CameraPreviewView(previewView: previewView)
+                .aspectRatio(CompositeImageRendererService.pictureAspectRatio, contentMode: .fit)
 
             Color.black.opacity(0.25)
                 .ignoresSafeArea()
