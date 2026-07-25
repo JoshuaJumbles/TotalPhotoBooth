@@ -47,11 +47,12 @@ final class CustomerExperienceViewModel {
             mode: mode,
             existingPhotos: existingPhotos,
             cameraService: cameraService,
-            onComplete: onComplete
+            onComplete: onComplete,
+            totalPhotos: imageService.totalPhotos
         )
     }
 
-    func confirmAndSave(photos:[CapturedPhoto]) async throws {
+    func confirmAndSave(photos: [CapturedPhoto]) async throws {
         try await repository.save(PhotoSession())
         step = .success(photoStrip: imageService.makeDoublePhotoStrip(photoData: photos.map{$0.imageData}))
     }

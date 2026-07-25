@@ -13,7 +13,7 @@ struct TotalPhotoBoothApp: App {
     private let repository: SwiftDataPhotoSessionRepository
     private let cameraService: CameraCaptureServiceProtocol
     private let imageService: CompositeImageRendererService
-
+    
     init() {
         let modelContainer: ModelContainer
         do {
@@ -24,13 +24,13 @@ struct TotalPhotoBoothApp: App {
         repository = SwiftDataPhotoSessionRepository(modelContainer: modelContainer)
         imageService = CompositeImageRendererService()
         
-        #if targetEnvironment(simulator)
+#if targetEnvironment(simulator)
         cameraService = SimulatedCameraCaptureService()
-        #else
+#else
         cameraService = AVFoundationCameraCaptureService()
-        #endif
+#endif
     }
-
+    
     var body: some Scene {
         WindowGroup {
             RootView(

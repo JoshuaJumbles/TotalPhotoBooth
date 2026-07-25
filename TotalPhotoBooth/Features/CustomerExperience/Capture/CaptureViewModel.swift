@@ -13,7 +13,7 @@ final class CaptureViewModel {
         case retake(index: Int)
     }
 
-    static let totalPhotos = 3
+    var totalPhotos: Int
 
     private(set) var capturedPhotos: [CapturedPhoto]
     private(set) var activeIndex: Int = 0
@@ -30,20 +30,22 @@ final class CaptureViewModel {
         existingPhotos: [CapturedPhoto],
         cameraService: CameraCaptureServiceProtocol,
         countdownTick: @escaping () async -> Void = { try? await Task.sleep(for: .seconds(1)) },
-        onComplete: @escaping ([CapturedPhoto]) -> Void
+        onComplete: @escaping ([CapturedPhoto]) -> Void,
+        totalPhotos: Int
     ) {
         self.mode = mode
         self.capturedPhotos = existingPhotos
         self.cameraService = cameraService
         self.countdownTick = countdownTick
         self.onComplete = onComplete
+        self.totalPhotos = totalPhotos
     }
 
     func beginCaptureSequence() async {
         let indices: [Int]
         switch mode {
         case .fullSequence:
-            indices = Array(0..<Self.totalPhotos)
+            indices = Array(0..<self.totalPhotos)
         case .retake(let index):
             indices = [index]
         }

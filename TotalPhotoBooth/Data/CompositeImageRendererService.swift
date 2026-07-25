@@ -1,5 +1,5 @@
 //
-//  CompositeImageService.swift
+//  CompositeImageRendererService.swift
 //  TotalPhotoBooth
 //
 //  Created by Joshua Jumbles on 7/23/26.
@@ -10,6 +10,8 @@ import UIKit
 
 struct CompositeImageRendererService {
     let ppi: CGFloat = 160
+    
+    let totalPhotos: Int = 3
 
     let printWidthInches: CGFloat = 4
     let printHeightInches: CGFloat = 6
@@ -19,7 +21,9 @@ struct CompositeImageRendererService {
     var printHeight: CGFloat { ppi * printHeightInches }
     var buffer: CGFloat { ppi * bufferInches }
 
+    //Per the design spec from old photo booth app
     let pictureAspectRatio: CGFloat = 500 / 580
+    
     var pictureWidth: CGFloat {
         (printWidth / 2) - (2 * buffer)
     }
@@ -36,8 +40,9 @@ struct CompositeImageRendererService {
         return brandImageWidth * aspectRatio
     }
     var brandImageY: CGFloat {
-        let h = (printHeight - buffer * 3 - pictureHeight * 3)
-        let yOffset = (h - brandImageHeight)/2
+        let i:CGFloat = CGFloat(totalPhotos)
+        let h = (printHeight - buffer * i - pictureHeight * i)
+        let yOffset = (h - brandImageHeight) / 2
         return (printHeight - h) + yOffset
     }
 
