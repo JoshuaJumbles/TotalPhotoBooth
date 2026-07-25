@@ -1,4 +1,5 @@
 import AVFoundation
+import CoreMedia
 import UIKit
 
 enum CameraCaptureError: LocalizedError {
@@ -54,7 +55,7 @@ final class AVFoundationCameraCaptureService: NSObject, CameraCaptureServiceProt
     }
 
     func makePreviewView() -> UIView {
-        VideoPreviewUIView(session: session)
+        VideoPreviewUIView(session: session, verticalAlignment: CompositeImageRendererService.pictureCropAlignment)
     }
 
     private func configureSessionIfNeeded() async throws {
@@ -99,19 +100,50 @@ extension AVFoundationCameraCaptureService: AVCapturePhotoCaptureDelegate {
 }
 
 private final class VideoPreviewUIView: UIView {
-    override class var layerClass: AnyClass { AVCaptureVideoPreviewLayer.self }
+    private let session: AVCaptureSession
+    private let verticalAlignment: CropVerticalAlignment
+    private let previewLayer = AVCaptureVideoPreviewLayer()
 
-    private var previewLayer: AVCaptureVideoPreviewLayer {
-        layer as! AVCaptureVideoPreviewLayer
-    }
-
-    init(session: AVCaptureSession) {
+    init(session: AVCaptureSession, verticalAlignment: CropVerticalAlignment) {
+        self.session = session
+        self.verticalAlignment = verticalAlignment
         super.init(frame: .zero)
+        clipsToBounds = true
         previewLayer.session = session
-        previewLayer.videoGravity = .resizeAspectFill
+        // We compute our own scale/position below (see layoutSubviews), so the
+        // layer should stretch to exactly whatever frame we hand it rather than
+        // applying its own aspect-fill logic on top of ours.
+        previewLayer.videoGravity = .resize
+        layer.addSublayer(previewLayer)
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        guard let sourceSize = activeSourceSize() else {
+            previewLayer.frame = bounds
+            return
+        }
+
+        previewLayer.frame = AspectFillFrameCalculator.frame(
+            containerSize: bounds.size,
+            sourceSize: sourceSize,
+            verticalAlignment: verticalAlignment
+        )
+    }
+
+    /// The active capture device reports its native dimensions in the sensor's own
+    /// (landscape) orientation. The app is locked to portrait, so that's transposed
+    /// exactly once here -- there's no dynamic orientation to account for.
+    private func activeSourceSize() -> CGSize? {
+        guard let device = session.inputs.compactMap({ $0 as? AVCaptureDeviceInput }).first?.device else {
+            return nil
+        }
+        let dimensions = CMVideoFormatDescriptionGetDimensions(device.activeFormat.formatDescription)
+        return CGSize(width: CGFloat(dimensions.height), height: CGFloat(dimensions.width))
     }
 }
