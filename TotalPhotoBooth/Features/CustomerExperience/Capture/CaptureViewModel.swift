@@ -13,7 +13,7 @@ final class CaptureViewModel {
         case retake(index: Int)
     }
 
-    static let totalPhotos = 4
+    static let totalPhotos = 3
 
     private(set) var capturedPhotos: [CapturedPhoto]
     private(set) var activeIndex: Int = 0
