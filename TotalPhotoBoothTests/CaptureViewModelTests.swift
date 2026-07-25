@@ -1,11 +1,13 @@
 import Foundation
 import Testing
+import UIKit
 @testable import TotalPhotoBooth
 
 @MainActor
 struct CaptureViewModelTests {
     @Test func fullSequenceCapturesAllPhotosInOrder() async {
-        let cameraService = FakeCameraCaptureService(imageData: Data([0xAA]))
+        let sampleImageData = UIImage(color: .red, size: CGSize(width: 400, height: 400))!.pngData()!
+        let cameraService = FakeCameraCaptureService(imageData: sampleImageData)
         var completedPhotos: [CapturedPhoto]?
         var tickCount = 0
         let viewModel = CaptureViewModel(
@@ -20,7 +22,11 @@ struct CaptureViewModelTests {
 
         #expect(viewModel.capturedPhotos.count == CompositeImageRendererService.totalPhotos)
         #expect(viewModel.capturedPhotos.map(\.index) == [0, 1, 2])
-        #expect(viewModel.capturedPhotos.allSatisfy { $0.imageData == Data([0xAA]) })
+        #expect(viewModel.capturedPhotos.allSatisfy { photo in
+            guard let image = UIImage(data: photo.imageData) else { return false }
+            let ratio = image.size.width / image.size.height
+            return abs(ratio - CompositeImageRendererService.pictureAspectRatio) < 0.01
+        })
         #expect(cameraService.captureCount == CompositeImageRendererService.totalPhotos)
         #expect(completedPhotos?.count == CompositeImageRendererService.totalPhotos)
         // 3 countdown ticks per photo, plus a pacing tick between each pair of photos

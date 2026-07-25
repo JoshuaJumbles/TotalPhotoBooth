@@ -38,6 +38,10 @@ enum CompositeImageRendererService {
     //Per the design spec from old photo booth app
     static let pictureAspectRatio: CGFloat = 500 / 580
 
+    // The booth's camera is mounted low, so a centered crop risks cutting
+    // off heads -- keep the top of the frame instead.
+    static let pictureCropAlignment: CropVerticalAlignment = .top
+
     static var pictureWidth: CGFloat {
         (printWidth / 2) - (2 * buffer)
     }

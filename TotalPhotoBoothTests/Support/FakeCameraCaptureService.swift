@@ -10,7 +10,7 @@ final class FakeCameraCaptureService: CameraCaptureServiceProtocol {
     private(set) var startHardwareSessionCallCount = 0
     private(set) var endHardwareSessionCallCount = 0
 
-    init(imageData: Data = Data([0x01, 0x02, 0x03])) {
+    init(imageData: Data = UIImage(color: .red, size: CGSize(width: 400, height: 400))!.pngData()!) {
         self.imageData = imageData
     }
 
