@@ -8,14 +8,14 @@ import UIKit
 struct CustomerExperienceViewModelTests {
     @Test func startsAtAttract() {
         let repository = InMemoryPhotoSessionRepository()
-        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService())
+        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver())
 
         #expect(viewModel.step == .attract)
     }
 
     @Test func startSessionEntersFullSequenceCapture() {
         let repository = InMemoryPhotoSessionRepository()
-        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService())
+        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver())
 
         viewModel.startSession()
 
@@ -24,7 +24,7 @@ struct CustomerExperienceViewModelTests {
 
     @Test func captureSequenceCompletedEntersReview() {
         let repository = InMemoryPhotoSessionRepository()
-        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService())
+        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver())
         let photos = (0..<CompositeImageRendererService.totalPhotos).map { CapturedPhoto(index: $0, imageData: Data()) }
 
         viewModel.captureSequenceCompleted(photos: photos)
@@ -34,7 +34,7 @@ struct CustomerExperienceViewModelTests {
 
     @Test func retakeEntersCaptureWithRetakeModeAndExistingPhotos() {
         let repository = InMemoryPhotoSessionRepository()
-        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService())
+        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver())
         let photos = (0..<CompositeImageRendererService.totalPhotos).map { CapturedPhoto(index: $0, imageData: Data()) }
 
         viewModel.retake(index: 1, currentPhotos: photos)
@@ -42,15 +42,17 @@ struct CustomerExperienceViewModelTests {
         #expect(viewModel.step == .capture(mode: .retake(index: 1), existingPhotos: photos))
     }
 
-    @Test func confirmAndSaveSavesExactlyOnePhotoSessionAndEntersSuccess() async throws {
+    @Test func confirmAndSaveSavesExactlyOnePhotoSessionSavesToPhotoLibraryAndEntersSuccess() async throws {
         let repository = InMemoryPhotoSessionRepository()
-        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService())
+        let photoLibrarySaver = FakePhotoLibrarySaver()
+        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: photoLibrarySaver)
         let sampleImageData = UIImage(color: .red)!.pngData()!
         let photos = (0..<CompositeImageRendererService.totalPhotos).map { CapturedPhoto(index: $0, imageData: sampleImageData) }
 
         try await viewModel.confirmAndSave(photos: photos)
 
         #expect(repository.sessions.count == 1)
+        #expect(photoLibrarySaver.savedImages.count == 1)
         if case .success(let photoStrip) = viewModel.step {
             #expect(photoStrip.size.width > 0)
             #expect(photoStrip.size.height > 0)
@@ -59,9 +61,26 @@ struct CustomerExperienceViewModelTests {
         }
     }
 
+    @Test func confirmAndSaveThrowsAndDoesNotEnterSuccessWhenPhotoLibrarySaveFails() async {
+        let repository = InMemoryPhotoSessionRepository()
+        let photoLibrarySaver = FakePhotoLibrarySaver()
+        photoLibrarySaver.saveError = PhotoLibrarySaveError.permissionDenied
+        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: photoLibrarySaver)
+        let sampleImageData = UIImage(color: .red)!.pngData()!
+        let photos = (0..<CompositeImageRendererService.totalPhotos).map { CapturedPhoto(index: $0, imageData: sampleImageData) }
+
+        await #expect(throws: PhotoLibrarySaveError.self) {
+            try await viewModel.confirmAndSave(photos: photos)
+        }
+
+        if case .success = viewModel.step {
+            Issue.record("Expected step not to be .success")
+        }
+    }
+
     @Test func finishSessionReturnsToAttract() {
         let repository = InMemoryPhotoSessionRepository()
-        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService())
+        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver())
         viewModel.captureSequenceCompleted(photos: [])
 
         viewModel.finishSession()

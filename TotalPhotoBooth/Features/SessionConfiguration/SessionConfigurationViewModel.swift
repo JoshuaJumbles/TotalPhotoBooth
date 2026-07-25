@@ -9,10 +9,14 @@ final class SessionConfigurationViewModel {
 
     private let repository: PhotoSessionRepositoryProtocol
     private let cameraService: CameraCaptureServiceProtocol
+    private let photoLibrarySaver: PhotoLibrarySaverProtocol
 
-    init(repository: PhotoSessionRepositoryProtocol, cameraService: CameraCaptureServiceProtocol) {
+    init(repository: PhotoSessionRepositoryProtocol,
+         cameraService: CameraCaptureServiceProtocol,
+         photoLibrarySaver: PhotoLibrarySaverProtocol) {
         self.repository = repository
         self.cameraService = cameraService
+        self.photoLibrarySaver = photoLibrarySaver
     }
 
     func loadInitialCount() async {
@@ -41,6 +45,10 @@ final class SessionConfigurationViewModel {
     }
 
     func makeCustomerExperienceViewModel() -> CustomerExperienceViewModel {
-        CustomerExperienceViewModel(repository: repository, cameraService: cameraService)
+        CustomerExperienceViewModel(
+            repository: repository,
+            cameraService: cameraService,
+            photoLibrarySaver: photoLibrarySaver
+        )
     }
 }
