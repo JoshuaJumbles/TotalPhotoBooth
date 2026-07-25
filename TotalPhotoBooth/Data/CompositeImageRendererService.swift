@@ -39,8 +39,10 @@ enum CompositeImageRendererService {
     static let pictureAspectRatio: CGFloat = 580 / 500
 
     // The booth's camera is mounted low, so a centered crop risks cutting
-    // off heads -- keep the top of the frame instead.
-    static let pictureCropAlignment: CropVerticalAlignment = .center
+    // off heads -- keep the top of the frame instead. The live preview now
+    // honors this same alignment (see VideoPreviewUIView), so this no longer
+    // needs to stay at .center for parity.
+    static let pictureCropAlignment: CropVerticalAlignment = .top
 
     static var pictureWidth: CGFloat {
         (printWidth / 2) - (2 * buffer)
