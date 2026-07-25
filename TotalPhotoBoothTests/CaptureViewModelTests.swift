@@ -18,18 +18,18 @@ struct CaptureViewModelTests {
 
         await viewModel.beginCaptureSequence()
 
-        #expect(viewModel.capturedPhotos.count == CaptureViewModel.totalPhotos)
-        #expect(viewModel.capturedPhotos.map(\.index) == [0, 1, 2, 3])
+        #expect(viewModel.capturedPhotos.count == CompositeImageRendererService.totalPhotos)
+        #expect(viewModel.capturedPhotos.map(\.index) == [0, 1, 2])
         #expect(viewModel.capturedPhotos.allSatisfy { $0.imageData == Data([0xAA]) })
-        #expect(cameraService.captureCount == CaptureViewModel.totalPhotos)
-        #expect(completedPhotos?.count == CaptureViewModel.totalPhotos)
+        #expect(cameraService.captureCount == CompositeImageRendererService.totalPhotos)
+        #expect(completedPhotos?.count == CompositeImageRendererService.totalPhotos)
         // 3 countdown ticks per photo, plus a pacing tick between each pair of photos
         // (not after the last one): 4*3 + 3 = 15.
-        #expect(tickCount == CaptureViewModel.totalPhotos * 3 + (CaptureViewModel.totalPhotos - 1))
+        #expect(tickCount == CompositeImageRendererService.totalPhotos * 3 + (CompositeImageRendererService.totalPhotos - 1))
     }
 
     @Test func retakeOnlyRecapturesTargetedIndex() async {
-        let existingPhotos = (0..<CaptureViewModel.totalPhotos).map {
+        let existingPhotos = (0..<CompositeImageRendererService.totalPhotos).map {
             CapturedPhoto(index: $0, imageData: Data())
         }
         let originalIDs = existingPhotos.map(\.id)
@@ -46,11 +46,10 @@ struct CaptureViewModelTests {
 
         await viewModel.beginCaptureSequence()
 
-        #expect(viewModel.capturedPhotos.count == CaptureViewModel.totalPhotos)
+        #expect(viewModel.capturedPhotos.count == CompositeImageRendererService.totalPhotos)
         #expect(viewModel.capturedPhotos[2].id != originalIDs[2])
         #expect(viewModel.capturedPhotos[0].id == originalIDs[0])
         #expect(viewModel.capturedPhotos[1].id == originalIDs[1])
-        #expect(viewModel.capturedPhotos[3].id == originalIDs[3])
         #expect(cameraService.captureCount == 1)
         // Just the 3 countdown ticks -- no pacing delay after a single retake.
         #expect(tickCount == 3)

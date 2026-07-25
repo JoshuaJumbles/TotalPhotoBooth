@@ -7,7 +7,7 @@ final class CustomerExperienceViewModel {
         case attract
         case capture(mode: CaptureViewModel.Mode, existingPhotos: [CapturedPhoto])
         case review(photos: [CapturedPhoto])
-        case success
+        case success(photoStrip: UIImage)
     }
 
     private(set) var step: FlowStep = .attract
@@ -16,7 +16,8 @@ final class CustomerExperienceViewModel {
     private let repository: PhotoSessionRepositoryProtocol
     private let cameraService: CameraCaptureServiceProtocol
 
-    init(repository: PhotoSessionRepositoryProtocol, cameraService: CameraCaptureServiceProtocol) {
+    init(repository: PhotoSessionRepositoryProtocol,
+         cameraService: CameraCaptureServiceProtocol) {
         self.repository = repository
         self.cameraService = cameraService
         self.previewView = cameraService.makePreviewView()
@@ -47,9 +48,10 @@ final class CustomerExperienceViewModel {
         )
     }
 
-    func confirmAndSave() async throws {
+    func confirmAndSave(photos: [CapturedPhoto]) async throws {
         try await repository.save(PhotoSession())
-        step = .success
+        let photoStrip = try CompositeImageRendererService.makeDoublePhotoStrip(photoData: photos.map { $0.imageData })
+        step = .success(photoStrip: photoStrip)
     }
 
     func finishSession() {

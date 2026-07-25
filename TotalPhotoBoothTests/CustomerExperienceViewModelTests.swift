@@ -1,5 +1,7 @@
 import Foundation
 import Testing
+import UIKit
+
 @testable import TotalPhotoBooth
 
 @MainActor
@@ -23,7 +25,7 @@ struct CustomerExperienceViewModelTests {
     @Test func captureSequenceCompletedEntersReview() {
         let repository = InMemoryPhotoSessionRepository()
         let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService())
-        let photos = (0..<CaptureViewModel.totalPhotos).map { CapturedPhoto(index: $0, imageData: Data()) }
+        let photos = (0..<CompositeImageRendererService.totalPhotos).map { CapturedPhoto(index: $0, imageData: Data()) }
 
         viewModel.captureSequenceCompleted(photos: photos)
 
@@ -33,7 +35,7 @@ struct CustomerExperienceViewModelTests {
     @Test func retakeEntersCaptureWithRetakeModeAndExistingPhotos() {
         let repository = InMemoryPhotoSessionRepository()
         let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService())
-        let photos = (0..<CaptureViewModel.totalPhotos).map { CapturedPhoto(index: $0, imageData: Data()) }
+        let photos = (0..<CompositeImageRendererService.totalPhotos).map { CapturedPhoto(index: $0, imageData: Data()) }
 
         viewModel.retake(index: 1, currentPhotos: photos)
 
@@ -43,11 +45,18 @@ struct CustomerExperienceViewModelTests {
     @Test func confirmAndSaveSavesExactlyOnePhotoSessionAndEntersSuccess() async throws {
         let repository = InMemoryPhotoSessionRepository()
         let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService())
+        let sampleImageData = UIImage(color: .red)!.pngData()!
+        let photos = (0..<CompositeImageRendererService.totalPhotos).map { CapturedPhoto(index: $0, imageData: sampleImageData) }
 
-        try await viewModel.confirmAndSave()
+        try await viewModel.confirmAndSave(photos: photos)
 
         #expect(repository.sessions.count == 1)
-        #expect(viewModel.step == .success)
+        if case .success(let photoStrip) = viewModel.step {
+            #expect(photoStrip.size.width > 0)
+            #expect(photoStrip.size.height > 0)
+        } else {
+            Issue.record("Expected step to be .success")
+        }
     }
 
     @Test func finishSessionReturnsToAttract() {

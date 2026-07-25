@@ -13,8 +13,6 @@ final class CaptureViewModel {
         case retake(index: Int)
     }
 
-    static let totalPhotos = 4
-
     private(set) var capturedPhotos: [CapturedPhoto]
     private(set) var activeIndex: Int = 0
     private(set) var countdownValue: Int = 0
@@ -43,7 +41,7 @@ final class CaptureViewModel {
         let indices: [Int]
         switch mode {
         case .fullSequence:
-            indices = Array(0..<Self.totalPhotos)
+            indices = Array(0..<CompositeImageRendererService.totalPhotos)
         case .retake(let index):
             indices = [index]
         }

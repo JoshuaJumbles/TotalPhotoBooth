@@ -28,12 +28,12 @@ struct CustomerExperienceView: View {
                 viewModel: ReviewViewModel(
                     photos: photos,
                     onRetake: { index in viewModel.retake(index: index, currentPhotos: photos) },
-                    onConfirm: { try await viewModel.confirmAndSave() }
+                    onConfirm: { try await viewModel.confirmAndSave(photos: photos) }
                 )
             )
 
-        case .success:
-            SuccessView(onDone: { viewModel.finishSession() })
+        case .success(let photoStrip):
+            SuccessView(onDone: { viewModel.finishSession() }, photoStripImage: photoStrip)
         }
     }
 }

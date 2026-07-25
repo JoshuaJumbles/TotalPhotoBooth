@@ -22,13 +22,13 @@ struct TotalPhotoBoothApp: App {
         }
         repository = SwiftDataPhotoSessionRepository(modelContainer: modelContainer)
 
-        #if targetEnvironment(simulator)
+#if targetEnvironment(simulator)
         cameraService = SimulatedCameraCaptureService()
-        #else
+#else
         cameraService = AVFoundationCameraCaptureService()
-        #endif
+#endif
     }
-
+    
     var body: some Scene {
         WindowGroup {
             RootView(
