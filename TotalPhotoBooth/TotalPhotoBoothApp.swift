@@ -13,6 +13,7 @@ struct TotalPhotoBoothApp: App {
     private let repository: SwiftDataPhotoSessionRepository
     private let cameraService: CameraCaptureServiceProtocol
     private let photoLibrarySaver: PhotoLibrarySaverProtocol
+    private let printerConnectionService: PrinterConnectionServiceProtocol
 
     init() {
         let modelContainer: ModelContainer
@@ -30,6 +31,7 @@ struct TotalPhotoBoothApp: App {
 #endif
 
         photoLibrarySaver = PhotoLibrarySaver()
+        printerConnectionService = AirPrintConnectionService()
     }
     
     var body: some Scene {
@@ -38,7 +40,8 @@ struct TotalPhotoBoothApp: App {
                 sessionConfigurationViewModel: SessionConfigurationViewModel(
                     repository: repository,
                     cameraService: cameraService,
-                    photoLibrarySaver: photoLibrarySaver
+                    photoLibrarySaver: photoLibrarySaver,
+                    printerConnectionService: printerConnectionService
                 ),
                 reportViewModel: ReportViewModel(repository: repository)
             )

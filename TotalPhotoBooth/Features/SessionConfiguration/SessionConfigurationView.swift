@@ -12,6 +12,26 @@ struct SessionConfigurationView: View {
             Text("\(viewModel.sessionCount) completed session\(viewModel.sessionCount == 1 ? "" : "s")")
                 .font(.title2)
 
+            HStack {
+                Image(systemName: viewModel.isPrinterConnected ? "printer.fill" : "printer.dotmatrix")
+                    .foregroundStyle(viewModel.isPrinterConnected ? .green : .secondary)
+                Text(viewModel.pairedPrinterName ?? "No printer paired")
+                    .foregroundStyle(.secondary)
+            }
+
+            Button(viewModel.pairedPrinterName == nil ? "Select Printer" : "Change Printer") {
+                viewModel.isPrinterPickerPresented = true
+            }
+            .background(
+                PrinterPickerView(
+                    isPresented: Binding(
+                        get: { viewModel.isPrinterPickerPresented },
+                        set: { viewModel.isPrinterPickerPresented = $0 }
+                    ),
+                    onSelect: { viewModel.printerSelected($0) }
+                )
+            )
+
             Button {
                 Task { await viewModel.startKioskMode() }
             } label: {
@@ -27,7 +47,10 @@ struct SessionConfigurationView: View {
             .disabled(viewModel.isStartingKioskMode)
         }
         .padding()
-        .task { await viewModel.loadInitialCount() }
+        .task {
+            await viewModel.loadInitialCount()
+            await viewModel.checkPrinterConnection()
+        }
         .alert(
             "Error",
             isPresented: Binding(
