@@ -12,6 +12,7 @@ import SwiftData
 struct TotalPhotoBoothApp: App {
     private let repository: SwiftDataPhotoSessionRepository
     private let cameraService: CameraCaptureServiceProtocol
+    private let photoLibrarySaver: PhotoLibrarySaverProtocol
 
     init() {
         let modelContainer: ModelContainer
@@ -27,6 +28,8 @@ struct TotalPhotoBoothApp: App {
 #else
         cameraService = AVFoundationCameraCaptureService()
 #endif
+
+        photoLibrarySaver = PhotoLibrarySaver()
     }
     
     var body: some Scene {
@@ -34,7 +37,8 @@ struct TotalPhotoBoothApp: App {
             RootView(
                 sessionConfigurationViewModel: SessionConfigurationViewModel(
                     repository: repository,
-                    cameraService: cameraService
+                    cameraService: cameraService,
+                    photoLibrarySaver: photoLibrarySaver
                 ),
                 reportViewModel: ReportViewModel(repository: repository)
             )

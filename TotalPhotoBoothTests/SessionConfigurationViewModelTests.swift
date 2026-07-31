@@ -6,7 +6,7 @@ import Testing
 struct SessionConfigurationViewModelTests {
     @Test func loadInitialCountReflectsExistingSessions() async {
         let repository = InMemoryPhotoSessionRepository(sessions: [PhotoSession(), PhotoSession()])
-        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: FakeCameraCaptureService())
+        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver())
 
         await viewModel.loadInitialCount()
 
@@ -16,7 +16,7 @@ struct SessionConfigurationViewModelTests {
     @Test func startKioskModeStartsHardwareSessionAndPresentsCustomerExperience() async {
         let repository = InMemoryPhotoSessionRepository()
         let cameraService = FakeCameraCaptureService()
-        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: cameraService)
+        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: cameraService, photoLibrarySaver: FakePhotoLibrarySaver())
 
         await viewModel.startKioskMode()
 
@@ -30,7 +30,7 @@ struct SessionConfigurationViewModelTests {
         let repository = InMemoryPhotoSessionRepository()
         let cameraService = FakeCameraCaptureService()
         cameraService.startHardwareSessionError = CameraCaptureError.permissionDenied
-        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: cameraService)
+        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: cameraService, photoLibrarySaver: FakePhotoLibrarySaver())
 
         await viewModel.startKioskMode()
 
@@ -42,7 +42,7 @@ struct SessionConfigurationViewModelTests {
     @Test func endKioskModeStopsHardwareSessionDismissesCustomerExperienceAndRefreshesCount() async {
         let repository = InMemoryPhotoSessionRepository(sessions: [PhotoSession()])
         let cameraService = FakeCameraCaptureService()
-        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: cameraService)
+        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: cameraService, photoLibrarySaver: FakePhotoLibrarySaver())
         await viewModel.startKioskMode()
 
         await viewModel.endKioskMode()
