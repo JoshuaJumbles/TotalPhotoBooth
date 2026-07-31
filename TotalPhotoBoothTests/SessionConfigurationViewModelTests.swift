@@ -91,6 +91,21 @@ struct SessionConfigurationViewModelTests {
         #expect(viewModel.errorMessage != nil)
     }
 
+    @Test func startKioskModeBypassesPrinterGateWhenDebugModeEnabled() async {
+        let repository = InMemoryPhotoSessionRepository()
+        let cameraService = FakeCameraCaptureService()
+        let printerConnectionService = FakePrinterConnectionService()
+        printerConnectionService.reconnectResult = nil
+        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: cameraService, photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: printerConnectionService)
+        viewModel.isDebugModeEnabled = true
+
+        await viewModel.startKioskMode()
+
+        #expect(cameraService.startHardwareSessionCallCount == 1)
+        #expect(viewModel.isPresentingCustomerExperience)
+        #expect(viewModel.errorMessage == nil)
+    }
+
     @Test func printerSelectedPersistsPairingAndUpdatesDisplayedState() {
         let repository = InMemoryPhotoSessionRepository()
         let printerConnectionService = FakePrinterConnectionService()
