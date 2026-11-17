@@ -32,6 +32,13 @@ struct SessionConfigurationView: View {
                 )
             )
 
+            VStack(spacing: 12) {
+                ForEach(PrintSupplyTracker.Supply.allCases) { supply in
+                    PrintSupplyRow(tracker: viewModel.supplyTracker, supply: supply)
+                }
+            }
+            .frame(maxWidth: 420)
+
             Button {
                 Task { await viewModel.startKioskMode() }
             } label: {
@@ -85,7 +92,9 @@ struct SessionConfigurationView: View {
                 }
             )
         ) {
-            CustomerExperienceView(viewModel: viewModel.makeCustomerExperienceViewModel())
+            if let customerExperienceViewModel = viewModel.customerExperienceViewModel {
+                CustomerExperienceView(viewModel: customerExperienceViewModel)
+            }
         }
     }
 }

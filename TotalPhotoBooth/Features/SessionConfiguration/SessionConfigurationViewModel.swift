@@ -4,13 +4,18 @@ import UIKit
 @Observable
 final class SessionConfigurationViewModel {
     private(set) var sessionCount: Int = 0
-    private(set) var isPresentingCustomerExperience: Bool = false
+    /// Built once per Kiosk Mode run and held here, so the customer flow
+    /// survives this screen re-rendering underneath it (e.g. when a print
+    /// updates the supply counts).
+    private(set) var customerExperienceViewModel: CustomerExperienceViewModel?
+    var isPresentingCustomerExperience: Bool { customerExperienceViewModel != nil }
     private(set) var isStartingKioskMode: Bool = false
     private(set) var pairedPrinterName: String?
     private(set) var isPrinterConnected: Bool = false
     var isPrinterPickerPresented: Bool = false
     var isDebugModeEnabled: Bool = false
     var errorMessage: String?
+    let supplyTracker: PrintSupplyTracker
 
     private let repository: PhotoSessionRepositoryProtocol
     private let cameraService: CameraCaptureServiceProtocol
@@ -20,11 +25,13 @@ final class SessionConfigurationViewModel {
     init(repository: PhotoSessionRepositoryProtocol,
          cameraService: CameraCaptureServiceProtocol,
          photoLibrarySaver: PhotoLibrarySaverProtocol,
-         printerConnectionService: PrinterConnectionServiceProtocol) {
+         printerConnectionService: PrinterConnectionServiceProtocol,
+         supplyTracker: PrintSupplyTracker) {
         self.repository = repository
         self.cameraService = cameraService
         self.photoLibrarySaver = photoLibrarySaver
         self.printerConnectionService = printerConnectionService
+        self.supplyTracker = supplyTracker
     }
 
     func loadInitialCount() async {
@@ -63,7 +70,7 @@ final class SessionConfigurationViewModel {
 
         do {
             try await cameraService.startHardwareSession()
-            isPresentingCustomerExperience = true
+            customerExperienceViewModel = makeCustomerExperienceViewModel()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -71,17 +78,18 @@ final class SessionConfigurationViewModel {
 
     func endKioskMode() async {
         cameraService.endHardwareSession()
-        isPresentingCustomerExperience = false
+        customerExperienceViewModel = nil
         await loadInitialCount()
         await checkPrinterConnection()
     }
 
-    func makeCustomerExperienceViewModel() -> CustomerExperienceViewModel {
+    private func makeCustomerExperienceViewModel() -> CustomerExperienceViewModel {
         CustomerExperienceViewModel(
             repository: repository,
             cameraService: cameraService,
             photoLibrarySaver: photoLibrarySaver,
             printerConnectionService: printerConnectionService,
+            supplyTracker: supplyTracker,
             isDebugMode: isDebugModeEnabled
         )
     }

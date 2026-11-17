@@ -4,7 +4,6 @@ import UIKit
 struct AttractView: View {
     let previewView: UIView
     let onStart: () -> Void
-    let onExitKioskMode: () -> Void
 
     var body: some View {
         ZStack {
@@ -29,12 +28,6 @@ struct AttractView: View {
                 }
                 .buttonStyle(.borderedProminent)
             }
-        }
-        .overlay(alignment: .topTrailing) {
-            Button("Exit Kiosk Mode", action: onExitKioskMode)
-                .font(.caption)
-                .foregroundStyle(.white)
-                .padding()
         }
     }
 }

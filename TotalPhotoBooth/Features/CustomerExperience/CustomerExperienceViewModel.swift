@@ -25,12 +25,15 @@ final class CustomerExperienceViewModel {
     private(set) var printStatus: PrintStatus = .idle
     /// The current print, kept so tests (and future retry logic) can await it.
     private(set) var printTask: Task<Void, Never>?
+    var isStaffMenuPresented = false
+    let staffMenu: StaffMenuViewModel
     let previewView: UIView
 
     private let repository: PhotoSessionRepositoryProtocol
     private let cameraService: CameraCaptureServiceProtocol
     private let photoLibrarySaver: PhotoLibrarySaverProtocol
     private let printerConnectionService: PrinterConnectionServiceProtocol
+    private let supplyTracker: PrintSupplyTracker
     private let isDebugMode: Bool
     private let logger = Logger(subsystem: "TotalPhotoBooth", category: "Printing")
 
@@ -38,12 +41,18 @@ final class CustomerExperienceViewModel {
          cameraService: CameraCaptureServiceProtocol,
          photoLibrarySaver: PhotoLibrarySaverProtocol,
          printerConnectionService: PrinterConnectionServiceProtocol,
+         supplyTracker: PrintSupplyTracker,
          isDebugMode: Bool = false) {
         self.repository = repository
         self.cameraService = cameraService
         self.photoLibrarySaver = photoLibrarySaver
         self.printerConnectionService = printerConnectionService
+        self.supplyTracker = supplyTracker
         self.isDebugMode = isDebugMode
+        self.staffMenu = StaffMenuViewModel(
+            printerConnectionService: printerConnectionService,
+            supplyTracker: supplyTracker
+        )
         self.previewView = cameraService.makePreviewView()
     }
 
@@ -95,6 +104,11 @@ final class CustomerExperienceViewModel {
         step = .attract
     }
 
+    func openStaffMenu() {
+        staffMenu.clearFinishedReprintStatus()
+        isStaffMenuPresented = true
+    }
+
     /// Identifies the session's print, so a slow print from a previous
     /// customer can't overwrite the next customer's status.
     private var currentPrintJobID: UUID?
@@ -109,6 +123,7 @@ final class CustomerExperienceViewModel {
         let result: PrintStatus
         do {
             try await printerConnectionService.printPhoto(photoStrip)
+            supplyTracker.recordPrint()
             result = .sent
         } catch {
             logger.error("Print failed: \(error.localizedDescription)")
