@@ -23,7 +23,8 @@ enum CompositeImageRenderError: LocalizedError {
 }
 
 enum CompositeImageRendererService {
-    static let ppi: CGFloat = 160
+    // Matches the SELPHY's native print resolution.
+    static let ppi: CGFloat = 300
 
     static let totalPhotos: Int = 3
 
@@ -69,6 +70,9 @@ enum CompositeImageRendererService {
     private static var pinnedScaleFormat: UIGraphicsImageRendererFormat {
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1
+        // 8-bit sRGB rather than the P3 iPad's wide-gamut default: smaller
+        // print jobs and predictable print colour.
+        format.preferredRange = .standard
         return format
     }
 

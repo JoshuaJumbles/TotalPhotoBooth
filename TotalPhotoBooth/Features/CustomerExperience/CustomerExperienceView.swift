@@ -33,7 +33,11 @@ struct CustomerExperienceView: View {
             )
 
         case .success(let photoStrip):
-            SuccessView(onDone: { viewModel.finishSession() }, photoStripImage: photoStrip)
+            SuccessView(
+                onDone: { viewModel.finishSession() },
+                photoStripImage: photoStrip,
+                printStatus: viewModel.printStatus
+            )
         }
     }
 }
