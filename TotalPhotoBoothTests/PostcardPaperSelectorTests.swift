@@ -49,4 +49,25 @@ struct PostcardPaperSelectorTests {
         #expect(abs(rect.midX - paper.midX) < 0.001)
         #expect(abs(rect.midY - paper.midY) < 0.001)
     }
+
+    @Test func offsetCompensationConvertsOnPaperMillimetersToDrawingPoints() {
+        let offset = AirPrintConnectionService.printerOffsetCompensation
+        let expected = 0.5 * (72 / 25.4) * AirPrintConnectionService.printerOverscanCompensation
+
+        #expect(abs(offset.width - expected) < 0.001)
+        #expect(abs(offset.height - expected) < 0.001)
+        #expect(offset.width > 0 && offset.height > 0) // right and down
+    }
+
+    @Test func contentScaleShrinksTheDrawRectAboutTheCenter() {
+        let paper = CGRect(origin: .zero, size: postcard)
+        let imageSize = CGSize(width: 1200, height: 1800)
+        let full = FullBleedImagePrintRenderer.contentRect(for: imageSize, in: paper, scale: 1)
+        let scaled = FullBleedImagePrintRenderer.contentRect(for: imageSize, in: paper, scale: 0.9)
+
+        #expect(abs(scaled.width - full.width * 0.9) < 0.001)
+        #expect(abs(scaled.height - full.height * 0.9) < 0.001)
+        #expect(abs(scaled.midX - paper.midX) < 0.001)
+        #expect(abs(scaled.midY - paper.midY) < 0.001)
+    }
 }

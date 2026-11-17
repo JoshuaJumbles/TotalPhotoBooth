@@ -33,22 +33,17 @@ struct SuccessView: View {
         .padding()
     }
 
+    /// One message for every print outcome. AirPrint can't tell us whether
+    /// paper actually came out (see `AirPrintConnectionService`), and pickup
+    /// happens at the counter anyway — so staff, not this screen, catch and
+    /// fix a missed print. A detected failure is logged, not shown.
     @ViewBuilder
     private var printStatusView: some View {
         switch printStatus {
         case .idle, .skipped:
             EmptyView()
-        case .sending:
-            HStack(spacing: 8) {
-                ProgressView()
-                Text("Printing your photos…")
-            }
-            .font(.title3)
-        case .sent:
-            Label("Your photos are on their way!", systemImage: "printer.fill")
-                .font(.title3)
-        case .failed:
-            Label("If your print doesn't appear, please see a staff member.", systemImage: "person.fill.questionmark")
+        case .sending, .sent, .failed:
+            Label("Your photos are printing! Pick them up at the front counter.", systemImage: "printer.fill")
                 .font(.title3)
                 .multilineTextAlignment(.center)
         }

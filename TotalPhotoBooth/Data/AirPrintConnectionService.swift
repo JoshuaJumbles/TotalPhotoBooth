@@ -32,6 +32,29 @@ enum PrintError: LocalizedError {
 final class AirPrintConnectionService: NSObject, PrinterConnectionServiceProtocol {
     private let pairedPrinterURLKey = "com.totalphotobooth.pairedPrinterURL"
     private let printTimeout: Duration = .seconds(90)
+
+    /// The SELPHY enlarges borderless prints so ink always bleeds past the
+    /// paper edge; drawing slightly smaller cancels that out. Calibrated on
+    /// the real CP1500: a panel designed at 38.8 mm tall printed at 41.5 mm,
+    /// a ~7% enlargement, so draw at 1 / 1.07 ≈ 0.935. Retune if the printer
+    /// model changes.
+    static let printerOverscanCompensation: CGFloat = 0.935
+
+    /// The SELPHY's mechanical paper positioning sat the image ~0.5 mm too far
+    /// left and ~0.5 mm too high (measured: 2 mm left / 3 mm right padding,
+    /// 2 mm top vs. the designed 2.5 mm). Measured on paper, in mm, +x right,
+    /// +y down; converted to drawing points below.
+    static let printerOffsetCompensationMM = CGSize(width: 0.5, height: 0.5)
+
+    /// The printer enlarges *after* we draw, so an on-paper offset maps back to
+    /// drawing space scaled by the overscan compensation.
+    static var printerOffsetCompensation: CGSize {
+        let pointsPerMM: CGFloat = 72 / 25.4
+        return CGSize(
+            width: printerOffsetCompensationMM.width * pointsPerMM * printerOverscanCompensation,
+            height: printerOffsetCompensationMM.height * pointsPerMM * printerOverscanCompensation
+        )
+    }
     private let logger = Logger(subsystem: "TotalPhotoBooth", category: "Printing")
 
     /// The previous job, awaited before starting the next one: the shared
@@ -89,7 +112,11 @@ final class AirPrintConnectionService: NSObject, PrinterConnectionServiceProtoco
         controller.printFormatter = nil
         controller.printInfo = info
         controller.delegate = self
-        controller.printPageRenderer = FullBleedImagePrintRenderer(image: image)
+        controller.printPageRenderer = FullBleedImagePrintRenderer(
+            image: image,
+            contentScale: Self.printerOverscanCompensation,
+            contentOffset: Self.printerOffsetCompensation
+        )
         defer {
             controller.printPageRenderer = nil
             controller.delegate = nil

@@ -76,8 +76,8 @@ final class CustomerExperienceViewModel {
 
     /// Saves the session and Photos backup (throwing back to Review on
     /// failure), then shows Success and prints. A print failure never throws
-    /// here — the strip is already backed up, so the customer still gets
-    /// Success, just with a "see staff" note.
+    /// here — the strip is already backed up in Photos, so the customer
+    /// still gets Success and staff can reprint it.
     func confirmAndSave(photos: [CapturedPhoto]) async throws {
         if !isDebugMode {
             try await repository.save(PhotoSession())
