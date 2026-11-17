@@ -78,6 +78,23 @@ struct CustomerExperienceViewModelTests {
         }
     }
 
+    @Test func confirmAndSaveSkipsPhotoSessionButStillSavesToPhotoLibraryWhenDebugModeEnabled() async throws {
+        let repository = InMemoryPhotoSessionRepository()
+        let photoLibrarySaver = FakePhotoLibrarySaver()
+        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: photoLibrarySaver, isDebugMode: true)
+        let sampleImageData = UIImage(color: .red)!.pngData()!
+        let photos = (0..<CompositeImageRendererService.totalPhotos).map { CapturedPhoto(index: $0, imageData: sampleImageData) }
+
+        try await viewModel.confirmAndSave(photos: photos)
+
+        #expect(repository.sessions.count == 0)
+        #expect(photoLibrarySaver.savedImages.count == 1)
+        if case .success = viewModel.step {
+        } else {
+            Issue.record("Expected step to be .success")
+        }
+    }
+
     @Test func finishSessionReturnsToAttract() {
         let repository = InMemoryPhotoSessionRepository()
         let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver())

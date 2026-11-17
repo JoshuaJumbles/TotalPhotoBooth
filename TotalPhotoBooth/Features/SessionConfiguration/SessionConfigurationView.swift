@@ -45,6 +45,21 @@ struct SessionConfigurationView: View {
             }
             .buttonStyle(.borderedProminent)
             .disabled(viewModel.isStartingKioskMode)
+
+            VStack(spacing: 4) {
+                Toggle("Debug Mode", isOn: Binding(
+                    get: { viewModel.isDebugModeEnabled },
+                    set: { viewModel.isDebugModeEnabled = $0 }
+                ))
+                .tint(.orange)
+                .frame(width: 220)
+
+                Text("Bypasses the printer requirement. Sessions aren't saved to reports.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.top, 24)
         }
         .padding()
         .task {

@@ -9,6 +9,7 @@ final class SessionConfigurationViewModel {
     private(set) var pairedPrinterName: String?
     private(set) var isPrinterConnected: Bool = false
     var isPrinterPickerPresented: Bool = false
+    var isDebugModeEnabled: Bool = false
     var errorMessage: String?
 
     private let repository: PhotoSessionRepositoryProtocol
@@ -53,9 +54,11 @@ final class SessionConfigurationViewModel {
         let printer = await printerConnectionService.reconnectToSavedPrinter()
         pairedPrinterName = printer?.displayName
         isPrinterConnected = printer != nil
-        guard printer != nil else {
-            errorMessage = "No printer connected. Please connect a printer before starting Kiosk Mode."
-            return
+        if !isDebugModeEnabled {
+            guard printer != nil else {
+                errorMessage = "No printer connected. Please connect a printer before starting Kiosk Mode."
+                return
+            }
         }
 
         do {
@@ -77,7 +80,8 @@ final class SessionConfigurationViewModel {
         CustomerExperienceViewModel(
             repository: repository,
             cameraService: cameraService,
-            photoLibrarySaver: photoLibrarySaver
+            photoLibrarySaver: photoLibrarySaver,
+            isDebugMode: isDebugModeEnabled
         )
     }
 }
