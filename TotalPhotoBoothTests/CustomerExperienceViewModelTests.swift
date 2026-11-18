@@ -8,14 +8,14 @@ import UIKit
 struct CustomerExperienceViewModelTests {
     @Test func startsAtAttract() {
         let repository = InMemoryPhotoSessionRepository()
-        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting())
+        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting(), screenFlash: FakeScreenFlash())
 
         #expect(viewModel.step == .attract)
     }
 
     @Test func startSessionEntersFullSequenceCapture() {
         let repository = InMemoryPhotoSessionRepository()
-        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting())
+        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting(), screenFlash: FakeScreenFlash())
 
         viewModel.startSession()
 
@@ -24,7 +24,7 @@ struct CustomerExperienceViewModelTests {
 
     @Test func captureSequenceCompletedEntersReview() {
         let repository = InMemoryPhotoSessionRepository()
-        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting())
+        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting(), screenFlash: FakeScreenFlash())
         let photos = (0..<CompositeImageRendererService.totalPhotos).map { CapturedPhoto(index: $0, imageData: Data()) }
 
         viewModel.captureSequenceCompleted(photos: photos)
@@ -34,7 +34,7 @@ struct CustomerExperienceViewModelTests {
 
     @Test func retakeEntersCaptureWithRetakeModeAndExistingPhotos() {
         let repository = InMemoryPhotoSessionRepository()
-        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting())
+        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting(), screenFlash: FakeScreenFlash())
         let photos = (0..<CompositeImageRendererService.totalPhotos).map { CapturedPhoto(index: $0, imageData: Data()) }
 
         viewModel.retake(index: 1, currentPhotos: photos)
@@ -45,7 +45,7 @@ struct CustomerExperienceViewModelTests {
     @Test func confirmAndSaveSavesExactlyOnePhotoSessionSavesToPhotoLibraryAndEntersSuccess() async throws {
         let repository = InMemoryPhotoSessionRepository()
         let photoLibrarySaver = FakePhotoLibrarySaver()
-        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: photoLibrarySaver, printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting())
+        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: photoLibrarySaver, printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting(), screenFlash: FakeScreenFlash())
         let sampleImageData = UIImage(color: .red)!.pngData()!
         let photos = (0..<CompositeImageRendererService.totalPhotos).map { CapturedPhoto(index: $0, imageData: sampleImageData) }
 
@@ -65,7 +65,7 @@ struct CustomerExperienceViewModelTests {
         let repository = InMemoryPhotoSessionRepository()
         let photoLibrarySaver = FakePhotoLibrarySaver()
         photoLibrarySaver.saveError = PhotoLibrarySaveError.permissionDenied
-        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: photoLibrarySaver, printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting())
+        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: photoLibrarySaver, printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting(), screenFlash: FakeScreenFlash())
         let sampleImageData = UIImage(color: .red)!.pngData()!
         let photos = (0..<CompositeImageRendererService.totalPhotos).map { CapturedPhoto(index: $0, imageData: sampleImageData) }
 
@@ -81,7 +81,7 @@ struct CustomerExperienceViewModelTests {
     @Test func confirmAndSaveSkipsPhotoSessionButStillSavesToPhotoLibraryWhenDebugModeEnabled() async throws {
         let repository = InMemoryPhotoSessionRepository()
         let photoLibrarySaver = FakePhotoLibrarySaver()
-        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: photoLibrarySaver, printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting(), isDebugMode: true)
+        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: photoLibrarySaver, printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting(), screenFlash: FakeScreenFlash(), isDebugMode: true)
         let sampleImageData = UIImage(color: .red)!.pngData()!
         let photos = (0..<CompositeImageRendererService.totalPhotos).map { CapturedPhoto(index: $0, imageData: sampleImageData) }
 
@@ -102,7 +102,7 @@ struct CustomerExperienceViewModelTests {
 
     @Test func confirmAndSavePrintsTheRenderedStripAndReportsSent() async throws {
         let printer = FakePrinterConnectionService()
-        let viewModel = CustomerExperienceViewModel(repository: InMemoryPhotoSessionRepository(), cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: printer, supplyTracker: .forTesting())
+        let viewModel = CustomerExperienceViewModel(repository: InMemoryPhotoSessionRepository(), cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: printer, supplyTracker: .forTesting(), screenFlash: FakeScreenFlash())
 
         try await viewModel.confirmAndSave(photos: samplePhotos())
         await viewModel.printTask?.value
@@ -120,7 +120,7 @@ struct CustomerExperienceViewModelTests {
         let repository = InMemoryPhotoSessionRepository()
         let printer = FakePrinterConnectionService()
         printer.printError = PrintError.printerUnavailable
-        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: printer, supplyTracker: .forTesting())
+        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: printer, supplyTracker: .forTesting(), screenFlash: FakeScreenFlash())
 
         try await viewModel.confirmAndSave(photos: samplePhotos())
         await viewModel.printTask?.value
@@ -136,7 +136,7 @@ struct CustomerExperienceViewModelTests {
     @Test func debugModeWithNoPairedPrinterSkipsPrinting() async throws {
         let printer = FakePrinterConnectionService()
         printer.hasPairedPrinter = false
-        let viewModel = CustomerExperienceViewModel(repository: InMemoryPhotoSessionRepository(), cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: printer, supplyTracker: .forTesting(), isDebugMode: true)
+        let viewModel = CustomerExperienceViewModel(repository: InMemoryPhotoSessionRepository(), cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: printer, supplyTracker: .forTesting(), screenFlash: FakeScreenFlash(), isDebugMode: true)
 
         try await viewModel.confirmAndSave(photos: samplePhotos())
         await viewModel.printTask?.value
@@ -147,7 +147,7 @@ struct CustomerExperienceViewModelTests {
 
     @Test func debugModeWithAPairedPrinterStillPrints() async throws {
         let printer = FakePrinterConnectionService()
-        let viewModel = CustomerExperienceViewModel(repository: InMemoryPhotoSessionRepository(), cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: printer, supplyTracker: .forTesting(), isDebugMode: true)
+        let viewModel = CustomerExperienceViewModel(repository: InMemoryPhotoSessionRepository(), cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: printer, supplyTracker: .forTesting(), screenFlash: FakeScreenFlash(), isDebugMode: true)
 
         try await viewModel.confirmAndSave(photos: samplePhotos())
         await viewModel.printTask?.value
@@ -157,7 +157,7 @@ struct CustomerExperienceViewModelTests {
     }
 
     @Test func startSessionResetsPrintStatus() async throws {
-        let viewModel = CustomerExperienceViewModel(repository: InMemoryPhotoSessionRepository(), cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting())
+        let viewModel = CustomerExperienceViewModel(repository: InMemoryPhotoSessionRepository(), cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting(), screenFlash: FakeScreenFlash())
         try await viewModel.confirmAndSave(photos: samplePhotos())
         await viewModel.printTask?.value
 
@@ -169,7 +169,7 @@ struct CustomerExperienceViewModelTests {
 
     @Test func aSentPrintCountsAgainstPrintSupplies() async throws {
         let tracker = PrintSupplyTracker.forTesting()
-        let viewModel = CustomerExperienceViewModel(repository: InMemoryPhotoSessionRepository(), cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: tracker)
+        let viewModel = CustomerExperienceViewModel(repository: InMemoryPhotoSessionRepository(), cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: tracker, screenFlash: FakeScreenFlash())
 
         try await viewModel.confirmAndSave(photos: samplePhotos())
         await viewModel.printTask?.value
@@ -181,7 +181,7 @@ struct CustomerExperienceViewModelTests {
         let printer = FakePrinterConnectionService()
         printer.printError = PrintError.printerUnavailable
         let tracker = PrintSupplyTracker.forTesting()
-        let viewModel = CustomerExperienceViewModel(repository: InMemoryPhotoSessionRepository(), cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: printer, supplyTracker: tracker)
+        let viewModel = CustomerExperienceViewModel(repository: InMemoryPhotoSessionRepository(), cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: printer, supplyTracker: tracker, screenFlash: FakeScreenFlash())
 
         try await viewModel.confirmAndSave(photos: samplePhotos())
         await viewModel.printTask?.value
@@ -190,7 +190,7 @@ struct CustomerExperienceViewModelTests {
     }
 
     @Test func openStaffMenuPresentsItWithoutDisturbingTheFlow() {
-        let viewModel = CustomerExperienceViewModel(repository: InMemoryPhotoSessionRepository(), cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting())
+        let viewModel = CustomerExperienceViewModel(repository: InMemoryPhotoSessionRepository(), cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting(), screenFlash: FakeScreenFlash())
         viewModel.startSession()
 
         viewModel.openStaffMenu()
@@ -201,7 +201,7 @@ struct CustomerExperienceViewModelTests {
 
     @Test func finishSessionReturnsToAttract() {
         let repository = InMemoryPhotoSessionRepository()
-        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting())
+        let viewModel = CustomerExperienceViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting(), screenFlash: FakeScreenFlash())
         viewModel.captureSequenceCompleted(photos: [])
 
         viewModel.finishSession()

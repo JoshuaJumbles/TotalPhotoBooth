@@ -7,6 +7,10 @@ struct CustomerExperienceView: View {
     var body: some View {
         content
             .background(StaffGestureInstaller { viewModel.openStaffMenu() })
+            // A kiosk shows no clock, battery or home indicator — and nothing
+            // should sit on top of the screen flash.
+            .statusBarHidden()
+            .persistentSystemOverlays(.hidden)
             .sheet(isPresented: Binding(
                 get: { viewModel.isStaffMenuPresented },
                 set: { viewModel.isStaffMenuPresented = $0 }

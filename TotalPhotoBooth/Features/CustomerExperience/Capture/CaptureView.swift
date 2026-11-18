@@ -13,20 +13,17 @@ struct CaptureView: View {
             CameraPreviewView(previewView: previewView)
                 .aspectRatio(CompositeImageRendererService.pictureAspectRatio, contentMode: .fit)
 
-            Color.black.opacity(0.25)
-                .ignoresSafeArea()
-
-            VStack(spacing: 24) {
-                Text("Photo \(viewModel.activeIndex + 1) of \(CompositeImageRendererService.totalPhotos)")
-                    .font(.headline)
-                    .foregroundStyle(.white)
-
-                if viewModel.countdownValue > 0 {
-                    Text("\(viewModel.countdownValue)")
-                        .font(.system(size: 96, weight: .bold))
-                        .foregroundStyle(.white)
-                }
-            }
+            centerContent
+        }
+        .overlay(alignment: .top) {
+            Text("Photo \(viewModel.activeIndex + 1) of \(CompositeImageRendererService.totalPhotos)")
+                .font(.system(size: 40, weight: .bold))
+                .foregroundStyle(.white)
+                .padding(.top, 44)
+        }
+        .overlay(alignment: .bottom) {
+            CaptureThumbnailTray(thumbnails: viewModel.thumbnails, activeIndex: viewModel.activeIndex)
+                .padding(.bottom, 40)
         }
         .overlay(alignment: .topLeading) {
             Button(action: viewModel.cancel) {
@@ -40,6 +37,10 @@ struct CaptureView: View {
             .foregroundStyle(.white)
             .padding(32)
         }
+        // Last, so the flash covers everything — Cancel included.
+        .overlay {
+            FlashOverlay(isOn: viewModel.phase == .flash)
+        }
         .task { await viewModel.beginCaptureSequence() }
         .alert(
             "Error",
@@ -50,5 +51,28 @@ struct CaptureView: View {
             actions: { Button("OK") { viewModel.dismissError() } },
             message: { Text(viewModel.errorMessage ?? "") }
         )
+    }
+
+    @ViewBuilder
+    private var centerContent: some View {
+        switch viewModel.phase {
+        case .countdown(let remaining):
+            CountdownRing(
+                remaining: remaining,
+                startedAt: viewModel.countdownStartedAt,
+                totalDuration: viewModel.timing.countdownLength
+            )
+        case .betweenShots:
+            Text("Nice! Photo \(viewModel.activeIndex + 2) is next…")
+                .font(.system(size: 56, weight: .heavy))
+                .foregroundStyle(.white)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
+                .padding(.vertical, 24)
+                .background(.black.opacity(0.45), in: RoundedRectangle(cornerRadius: 28))
+                .transition(.opacity)
+        case .idle, .flash:
+            EmptyView()
+        }
     }
 }

@@ -16,6 +16,8 @@ struct TotalPhotoBoothApp: App {
     private let printerConnectionService: PrinterConnectionServiceProtocol
     private let supplyTracker = PrintSupplyTracker()
     private let spiralSettings = SpiralSettings()
+    private let flashSettings = FlashSettings()
+    private let screenFlash = ScreenBrightnessFlash()
 
     init() {
         let modelContainer: ModelContainer
@@ -44,11 +46,14 @@ struct TotalPhotoBoothApp: App {
                     cameraService: cameraService,
                     photoLibrarySaver: photoLibrarySaver,
                     printerConnectionService: printerConnectionService,
-                    supplyTracker: supplyTracker
+                    supplyTracker: supplyTracker,
+                    flashSettings: flashSettings,
+                    screenFlash: screenFlash
                 ),
                 reportViewModel: ReportViewModel(repository: repository)
             )
             .environment(spiralSettings)
+            .environment(flashSettings)
         }
     }
 }

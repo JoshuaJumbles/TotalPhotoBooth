@@ -15,23 +15,42 @@ final class SessionConfigurationViewModel {
     var isPrinterPickerPresented: Bool = false
     var isDebugModeEnabled: Bool = false
     var errorMessage: String?
+    /// True while Debug Mode's "Test Flash" has the flash overlay up.
+    private(set) var isTestFlashing = false
     let supplyTracker: PrintSupplyTracker
+    let flashSettings: FlashSettings
 
     private let repository: PhotoSessionRepositoryProtocol
     private let cameraService: CameraCaptureServiceProtocol
     private let photoLibrarySaver: PhotoLibrarySaverProtocol
     private let printerConnectionService: PrinterConnectionServiceProtocol
+    private let screenFlash: ScreenFlashProtocol
 
     init(repository: PhotoSessionRepositoryProtocol,
          cameraService: CameraCaptureServiceProtocol,
          photoLibrarySaver: PhotoLibrarySaverProtocol,
          printerConnectionService: PrinterConnectionServiceProtocol,
-         supplyTracker: PrintSupplyTracker) {
+         supplyTracker: PrintSupplyTracker,
+         flashSettings: FlashSettings,
+         screenFlash: ScreenFlashProtocol) {
         self.repository = repository
         self.cameraService = cameraService
         self.photoLibrarySaver = photoLibrarySaver
         self.printerConnectionService = printerConnectionService
         self.supplyTracker = supplyTracker
+        self.flashSettings = flashSettings
+        self.screenFlash = screenFlash
+    }
+
+    /// Fires the real flash for a moment so its warmth can be judged in the
+    /// booth itself.
+    func testFlash(duration: Duration = .milliseconds(700)) async {
+        guard !isTestFlashing else { return }
+        isTestFlashing = true
+        screenFlash.begin()
+        try? await Task.sleep(for: duration)
+        screenFlash.end()
+        isTestFlashing = false
     }
 
     func loadInitialCount() async {
@@ -93,7 +112,10 @@ final class SessionConfigurationViewModel {
             photoLibrarySaver: photoLibrarySaver,
             printerConnectionService: printerConnectionService,
             supplyTracker: supplyTracker,
-            isDebugMode: isDebugModeEnabled
+            screenFlash: screenFlash,
+            isDebugMode: isDebugModeEnabled,
+            // Snapshotted per kiosk run, like Debug Mode.
+            captureTiming: flashSettings.captureTiming
         )
     }
 }

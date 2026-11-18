@@ -47,6 +47,8 @@ final class CustomerExperienceViewModel {
     private let photoLibrarySaver: PhotoLibrarySaverProtocol
     private let printerConnectionService: PrinterConnectionServiceProtocol
     private let supplyTracker: PrintSupplyTracker
+    private let screenFlash: ScreenFlashProtocol
+    private let captureTiming: CaptureTiming
     private let isDebugMode: Bool
     private let timeouts: KioskTimeouts
     /// Explicitly `@MainActor`: left unannotated (nonisolated-nonsending
@@ -61,7 +63,9 @@ final class CustomerExperienceViewModel {
          photoLibrarySaver: PhotoLibrarySaverProtocol,
          printerConnectionService: PrinterConnectionServiceProtocol,
          supplyTracker: PrintSupplyTracker,
+         screenFlash: ScreenFlashProtocol,
          isDebugMode: Bool = false,
+         captureTiming: CaptureTiming = .standard,
          timeouts: KioskTimeouts = .standard,
          sleep: @escaping @MainActor (Duration) async -> Void = { try? await Task.sleep(for: $0) }) {
         self.repository = repository
@@ -69,6 +73,8 @@ final class CustomerExperienceViewModel {
         self.photoLibrarySaver = photoLibrarySaver
         self.printerConnectionService = printerConnectionService
         self.supplyTracker = supplyTracker
+        self.screenFlash = screenFlash
+        self.captureTiming = captureTiming
         self.isDebugMode = isDebugMode
         self.timeouts = timeouts
         self.sleep = sleep
@@ -206,6 +212,8 @@ final class CustomerExperienceViewModel {
             mode: mode,
             existingPhotos: existingPhotos,
             cameraService: cameraService,
+            screenFlash: screenFlash,
+            timing: captureTiming,
             onComplete: { [weak self] photos in self?.captureSequenceCompleted(photos: photos) },
             onCancel: { [weak self] in self?.captureAbandoned(mode: mode, existingPhotos: existingPhotos) }
         )
