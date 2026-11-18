@@ -21,7 +21,7 @@ struct KioskFlowTests {
             cameraService: FakeCameraCaptureService(),
             photoLibrarySaver: photoLibrarySaver,
             printerConnectionService: FakePrinterConnectionService(),
-            supplyTracker: .forTesting(),
+            supplyTracker: .forTesting(), screenFlash: FakeScreenFlash(),
             timeouts: timeouts,
             sleep: { await sleeper.sleep($0) }
         )

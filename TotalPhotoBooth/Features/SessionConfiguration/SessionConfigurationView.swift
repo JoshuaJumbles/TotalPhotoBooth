@@ -27,6 +27,9 @@ struct SessionConfigurationView: View {
             actions: { Button("OK") { viewModel.errorMessage = nil } },
             message: { Text(viewModel.errorMessage ?? "") }
         )
+        .overlay {
+            FlashOverlay(isOn: viewModel.isTestFlashing)
+        }
         .fullScreenCover(
             isPresented: Binding(
                 get: { viewModel.isPresentingCustomerExperience },
@@ -111,6 +114,13 @@ struct SessionConfigurationView: View {
             if viewModel.isDebugModeEnabled {
                 SpiralTuningSection(settings: spiralSettings)
                     .padding(.top, 16)
+
+                FlashTuningSection(
+                    settings: viewModel.flashSettings,
+                    isTestFlashing: viewModel.isTestFlashing,
+                    onTestFlash: { Task { await viewModel.testFlash() } }
+                )
+                .padding(.top, 16)
             }
         }
     }

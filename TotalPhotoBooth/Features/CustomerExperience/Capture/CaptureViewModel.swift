@@ -22,18 +22,40 @@ final class CaptureViewModel {
         case retake(index: Int)
     }
 
+    enum Phase: Equatable {
+        /// Nothing on screen yet, or the sequence has finished.
+        case idle
+        case countdown(remaining: Int)
+        /// The screen flash is up and the shutter is about to fire.
+        case flash
+        /// A beat between photos to reset and change pose.
+        case betweenShots
+    }
+
     private(set) var capturedPhotos: [CapturedPhoto]
+    /// Small previews for the thumbnail tray, keyed by photo index, made once
+    /// per photo rather than decoding full JPEGs on every render.
+    private(set) var thumbnails: [Int: UIImage] = [:]
     private(set) var activeIndex: Int = 0
-    private(set) var countdownValue: Int = 0
+    private(set) var phase: Phase = .idle
+    /// When the current countdown began, so the ring can drain smoothly
+    /// instead of stepping once a second.
+    private(set) var countdownStartedAt: Date?
     var errorMessage: String?
+
+    let timing: CaptureTiming
 
     private let mode: Mode
     private let cameraService: CameraCaptureServiceProtocol
-    private let countdownTick: () async -> Void
+    private let screenFlash: ScreenFlashProtocol
+    /// `@MainActor`-typed on purpose: unannotated, a `Duration` argument can
+    /// arrive as garbage under this project's concurrency settings.
+    private let sleep: @MainActor (Duration) async -> Void
+    private let now: () -> Date
     private let onComplete: ([CapturedPhoto]) -> Void
     private let onCancel: () -> Void
-    /// Set by Cancel. `countdownTick` swallows task cancellation, so the
-    /// sequence checks this explicitly rather than trusting the sleep to throw.
+    /// Set by Cancel. `sleep` swallows task cancellation, so the sequence
+    /// checks this explicitly rather than trusting the sleep to throw.
     private var isCancelled = false
 
     private var shouldStop: Bool { isCancelled || Task.isCancelled }
@@ -42,16 +64,25 @@ final class CaptureViewModel {
         mode: Mode,
         existingPhotos: [CapturedPhoto],
         cameraService: CameraCaptureServiceProtocol,
-        countdownTick: @escaping () async -> Void = { try? await Task.sleep(for: .seconds(1)) },
+        screenFlash: ScreenFlashProtocol,
+        timing: CaptureTiming = .standard,
+        sleep: @escaping @MainActor (Duration) async -> Void = { try? await Task.sleep(for: $0) },
+        now: @escaping () -> Date = { Date() },
         onComplete: @escaping ([CapturedPhoto]) -> Void,
         onCancel: @escaping () -> Void = {}
     ) {
         self.mode = mode
         self.capturedPhotos = existingPhotos
         self.cameraService = cameraService
-        self.countdownTick = countdownTick
+        self.screenFlash = screenFlash
+        self.timing = timing
+        self.sleep = sleep
+        self.now = now
         self.onComplete = onComplete
         self.onCancel = onCancel
+        for photo in existingPhotos {
+            thumbnails[photo.index] = Self.thumbnail(from: photo.imageData)
+        }
     }
 
     /// Stops the sequence where it is — no further photos, no completion —
@@ -80,37 +111,77 @@ final class CaptureViewModel {
 
         for (position, index) in indices.enumerated() {
             activeIndex = index
-            for remaining in stride(from: 3, through: 1, by: -1) {
-                countdownValue = remaining
-                await countdownTick()
+
+            countdownStartedAt = now()
+            for remaining in stride(from: timing.countdownFrom, through: 1, by: -1) {
+                phase = .countdown(remaining: remaining)
+                await sleep(timing.countdownStep)
                 if shouldStop { return }
             }
-            countdownValue = 0
+            countdownStartedAt = nil
 
+            let rawData: Data
             do {
-                let rawData = try await cameraService.capturePhoto()
-                if shouldStop { return }
-                let imageData = try processCapturedImageData(rawData)
-                let photo = CapturedPhoto(index: index, imageData: imageData)
-                if index < capturedPhotos.count {
-                    capturedPhotos[index] = photo
-                } else {
-                    capturedPhotos.append(photo)
-                }
+                guard let data = try await captureWithFlash() else { return }
+                rawData = data
             } catch {
                 if shouldStop { return }
                 errorMessage = error.localizedDescription
                 return
             }
 
+            do {
+                let imageData = try processCapturedImageData(rawData)
+                store(CapturedPhoto(index: index, imageData: imageData))
+            } catch {
+                errorMessage = error.localizedDescription
+                return
+            }
+
             let isLastPhoto = position == indices.count - 1
             if !isLastPhoto {
-                await countdownTick()
+                phase = .betweenShots
+                await sleep(timing.pauseBetweenShots)
                 if shouldStop { return }
             }
         }
 
+        phase = .idle
         onComplete(capturedPhotos)
+    }
+
+    /// Flash on, let the camera settle, shoot, hold, flash off. Returns nil
+    /// if the sequence was cancelled. The flash always ends on the way out —
+    /// cancelled, failed, or done — so the screen never stays at full blast.
+    private func captureWithFlash() async throws -> Data? {
+        phase = .flash
+        screenFlash.begin()
+        defer {
+            screenFlash.end()
+            phase = .idle
+        }
+
+        await sleep(timing.flashLead)
+        if shouldStop { return nil }
+
+        let data = try await cameraService.capturePhoto()
+        if shouldStop { return nil }
+
+        await sleep(timing.flashHold)
+        return shouldStop ? nil : data
+    }
+
+    private func store(_ photo: CapturedPhoto) {
+        if photo.index < capturedPhotos.count {
+            capturedPhotos[photo.index] = photo
+        } else {
+            capturedPhotos.append(photo)
+        }
+        thumbnails[photo.index] = Self.thumbnail(from: photo.imageData)
+    }
+
+    private static func thumbnail(from data: Data) -> UIImage? {
+        UIImage(data: data)?.preparingThumbnail(of: CGSize(width: 400, height: 400 / CompositeImageRendererService.pictureAspectRatio))
     }
 
     private func processCapturedImageData(_ rawData: Data) throws -> Data {
