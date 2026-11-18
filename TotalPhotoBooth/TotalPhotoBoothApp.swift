@@ -18,6 +18,7 @@ struct TotalPhotoBoothApp: App {
     private let spiralSettings = SpiralSettings()
     private let flashSettings = FlashSettings()
     private let screenFlash = ScreenBrightnessFlash()
+    private let motionWakeSettings = MotionWakeSettings()
 
     init() {
         let modelContainer: ModelContainer
@@ -48,7 +49,8 @@ struct TotalPhotoBoothApp: App {
                     printerConnectionService: printerConnectionService,
                     supplyTracker: supplyTracker,
                     flashSettings: flashSettings,
-                    screenFlash: screenFlash
+                    screenFlash: screenFlash,
+                    motionWakeSettings: motionWakeSettings
                 ),
                 reportViewModel: ReportViewModel(repository: repository)
             )

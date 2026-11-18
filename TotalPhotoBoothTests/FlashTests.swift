@@ -58,7 +58,7 @@ struct FlashTests {
         let viewModel = SessionConfigurationViewModel(
             repository: InMemoryPhotoSessionRepository(), cameraService: FakeCameraCaptureService(),
             photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(),
-            supplyTracker: .forTesting(), flashSettings: FlashSettings(defaults: .forTesting()), screenFlash: flash
+            supplyTracker: .forTesting(), flashSettings: FlashSettings(defaults: .forTesting()), screenFlash: flash, motionWakeSettings: MotionWakeSettings(defaults: .forTesting())
         )
 
         await viewModel.testFlash(duration: .zero)

@@ -36,4 +36,12 @@ final class FakeCameraCaptureService: CameraCaptureServiceProtocol {
     func makePreviewView() -> UIView {
         UIView()
     }
+
+    private(set) var lumaContinuation: AsyncStream<LumaGrid>.Continuation?
+
+    func makeLumaFrameStream() -> AsyncStream<LumaGrid> {
+        let (stream, continuation) = AsyncStream.makeStream(of: LumaGrid.self)
+        lumaContinuation = continuation
+        return stream
+    }
 }

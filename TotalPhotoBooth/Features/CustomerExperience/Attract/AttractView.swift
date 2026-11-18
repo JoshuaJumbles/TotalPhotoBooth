@@ -4,6 +4,8 @@ import SwiftUI
 /// Any touch moves on to the pitch (motion will wake it too, later).
 struct AttractView: View {
     @Environment(SpiralSettings.self) private var spiralSettings
+    /// Set only in Debug Mode, to show the live motion meter for tuning.
+    let presenceMonitor: PresenceMonitor?
     let onWake: () -> Void
 
     var body: some View {
@@ -23,6 +25,12 @@ struct AttractView: View {
                         .shadow(color: .black.opacity(0.6), radius: 6)
                         .padding(.bottom, 72)
                 }
+            }
+        }
+        .overlay(alignment: .topTrailing) {
+            if let presenceMonitor {
+                MotionMeter(monitor: presenceMonitor)
+                    .padding(32)
             }
         }
         .contentShape(Rectangle())
