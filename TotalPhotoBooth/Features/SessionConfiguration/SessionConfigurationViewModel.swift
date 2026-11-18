@@ -81,6 +81,7 @@ final class SessionConfigurationViewModel {
             repository: repository,
             cameraService: cameraService,
             photoLibrarySaver: photoLibrarySaver,
+            printerConnectionService: printerConnectionService,
             isDebugMode: isDebugModeEnabled
         )
     }
