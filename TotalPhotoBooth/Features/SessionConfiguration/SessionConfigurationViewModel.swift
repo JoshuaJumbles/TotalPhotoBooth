@@ -71,6 +71,8 @@ final class SessionConfigurationViewModel {
         do {
             try await cameraService.startHardwareSession()
             customerExperienceViewModel = makeCustomerExperienceViewModel()
+            // A kiosk must never auto-lock; the spiral is its screensaver.
+            UIApplication.shared.isIdleTimerDisabled = true
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -79,6 +81,7 @@ final class SessionConfigurationViewModel {
     func endKioskMode() async {
         cameraService.endHardwareSession()
         customerExperienceViewModel = nil
+        UIApplication.shared.isIdleTimerDisabled = false
         await loadInitialCount()
         await checkPrinterConnection()
     }

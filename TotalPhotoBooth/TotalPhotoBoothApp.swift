@@ -15,6 +15,7 @@ struct TotalPhotoBoothApp: App {
     private let photoLibrarySaver: PhotoLibrarySaverProtocol
     private let printerConnectionService: PrinterConnectionServiceProtocol
     private let supplyTracker = PrintSupplyTracker()
+    private let spiralSettings = SpiralSettings()
 
     init() {
         let modelContainer: ModelContainer
@@ -47,6 +48,7 @@ struct TotalPhotoBoothApp: App {
                 ),
                 reportViewModel: ReportViewModel(repository: repository)
             )
+            .environment(spiralSettings)
         }
     }
 }

@@ -1,34 +1,29 @@
 import SwiftUI
-import UIKit
 
-/// The idle screen. Any touch moves on to the pitch. (The spiral and logo
-/// replace this look in a later pass; motion will wake it too.)
+/// The idle "screensaver": the slowly turning spiral and the store logo.
+/// Any touch moves on to the pitch (motion will wake it too, later).
 struct AttractView: View {
-    let previewView: UIView
+    @Environment(SpiralSettings.self) private var spiralSettings
     let onWake: () -> Void
 
     var body: some View {
-        ZStack {
-            Color.black
-                .ignoresSafeArea()
+        // One clock, so the logo's orbit stays in step with the spiral's turn.
+        SpiralTimeline { time in
+            ZStack {
+                HypnoSpiralView(style: spiralSettings.style, time: time)
 
-            CameraPreviewView(previewView: previewView)
-                .aspectRatio(CompositeImageRendererService.pictureAspectRatio, contentMode: .fit)
+                LayeredLogo(style: spiralSettings.style, time: time)
+                    .containerRelativeFrame(.horizontal) { width, _ in width * 0.75 }
 
-            Color.black.opacity(0.35)
-                .ignoresSafeArea()
-
-            VStack(spacing: 24) {
-                Text("Welcome!")
-                    .font(.system(size: 88, weight: .heavy))
-
-                Text("Touch anywhere to begin")
-                    .font(.system(size: 36, weight: .semibold))
-                    .opacity(0.85)
+                VStack {
+                    Spacer()
+                    Text("Touch anywhere to begin")
+                        .font(.system(size: 30, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.85))
+                        .shadow(color: .black.opacity(0.6), radius: 6)
+                        .padding(.bottom, 72)
+                }
             }
-            .foregroundStyle(.white)
-            .multilineTextAlignment(.center)
-            .padding(48)
         }
         .contentShape(Rectangle())
         .onTapGesture(perform: onWake)

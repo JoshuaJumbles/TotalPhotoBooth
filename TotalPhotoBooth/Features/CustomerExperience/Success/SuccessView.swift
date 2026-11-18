@@ -26,7 +26,10 @@ struct SuccessView: View {
             .padding(.top, 24)
         }
         .multilineTextAlignment(.center)
+        .foregroundStyle(.white)
         .padding(48)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(SpiralBackground(dimming: 0.4))
     }
 
     /// One message for every print outcome. AirPrint can't tell us whether
@@ -44,7 +47,7 @@ struct SuccessView: View {
                     .font(.system(size: 44, weight: .bold))
                 Text("Pick them up at the front counter.")
                     .font(.system(size: 36, weight: .semibold))
-                    .foregroundStyle(.secondary)
+                    .opacity(0.8)
             }
         }
     }
