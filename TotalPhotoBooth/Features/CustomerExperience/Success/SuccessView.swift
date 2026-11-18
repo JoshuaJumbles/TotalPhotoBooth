@@ -2,35 +2,31 @@ import SwiftUI
 
 struct SuccessView: View {
     let onDone: () -> Void
-    let photoStripImage: UIImage
     let printStatus: CustomerExperienceViewModel.PrintStatus
-    let showDebugPrintPreview = true
 
     var body: some View {
-        VStack(spacing: 24) {
-            if showDebugPrintPreview {
-                Image(uiImage: photoStripImage)
-                    .resizable()
-                    .scaledToFit()
-            }
-
+        VStack(spacing: 40) {
             Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 96))
+                .font(.system(size: 180))
                 .foregroundStyle(.green)
 
             Text("You're all set!")
-                .font(.title)
+                .font(.system(size: 80, weight: .heavy))
 
             printStatusView
 
             Button(action: onDone) {
                 Text("Done")
-                    .font(.headline)
-                    .frame(minWidth: 160)
+                    .font(.system(size: 40, weight: .bold))
+                    .frame(minWidth: 280)
+                    .padding(.vertical, 16)
             }
             .buttonStyle(.borderedProminent)
+            .buttonBorderShape(.capsule)
+            .padding(.top, 24)
         }
-        .padding()
+        .multilineTextAlignment(.center)
+        .padding(48)
     }
 
     /// One message for every print outcome. AirPrint can't tell us whether
@@ -43,9 +39,13 @@ struct SuccessView: View {
         case .idle, .skipped:
             EmptyView()
         case .sending, .sent, .failed:
-            Label("Your photos are printing! Pick them up at the front counter.", systemImage: "printer.fill")
-                .font(.title3)
-                .multilineTextAlignment(.center)
+            VStack(spacing: 12) {
+                Text("Your photos are printing!")
+                    .font(.system(size: 44, weight: .bold))
+                Text("Pick them up at the front counter.")
+                    .font(.system(size: 36, weight: .semibold))
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 }

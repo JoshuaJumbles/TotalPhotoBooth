@@ -24,32 +24,36 @@ struct CustomerExperienceView: View {
         case .attract:
             AttractView(
                 previewView: viewModel.previewView,
+                onWake: { viewModel.showPitch() }
+            )
+
+        case .pitch:
+            PitchView(
+                previewView: viewModel.previewView,
                 onStart: { viewModel.startSession() }
             )
 
-        case .capture(let mode, let existingPhotos):
-            CaptureView(
-                viewModel: viewModel.makeCaptureViewModel(
-                    mode: mode,
-                    existingPhotos: existingPhotos,
-                    onComplete: { photos in viewModel.captureSequenceCompleted(photos: photos) }
-                ),
-                previewView: viewModel.previewView
-            )
+        case .capture:
+            if let captureViewModel = viewModel.captureViewModel {
+                CaptureView(viewModel: captureViewModel, previewView: viewModel.previewView)
+            }
 
-        case .review(let photos):
-            ReviewView(
-                viewModel: ReviewViewModel(
-                    photos: photos,
-                    onRetake: { index in viewModel.retake(index: index, currentPhotos: photos) },
-                    onConfirm: { try await viewModel.confirmAndSave(photos: photos) }
-                )
-            )
+        case .review:
+            if let reviewViewModel = viewModel.reviewViewModel {
+                ReviewView(viewModel: reviewViewModel)
+                    .overlay {
+                        if viewModel.isShowingStillThere {
+                            StillThereOverlay(
+                                secondsRemaining: viewModel.stillThereSecondsRemaining,
+                                onStillHere: { viewModel.stillHere() }
+                            )
+                        }
+                    }
+            }
 
-        case .success(let photoStrip):
+        case .success:
             SuccessView(
                 onDone: { viewModel.finishSession() },
-                photoStripImage: photoStrip,
                 printStatus: viewModel.printStatus
             )
         }

@@ -81,4 +81,46 @@ struct CaptureViewModelTests {
         #expect(cameraService.captureCount == 1)
         #expect(!completed)
     }
+
+    @Test func cancelMidCountdownStopsWithoutCapturingOrCompleting() async {
+        let cameraService = FakeCameraCaptureService()
+        var completed = false
+        var cancelCount = 0
+        var viewModel: CaptureViewModel!
+        viewModel = CaptureViewModel(
+            mode: .fullSequence,
+            existingPhotos: [],
+            cameraService: cameraService,
+            countdownTick: { viewModel.cancel() },
+            onComplete: { _ in completed = true },
+            onCancel: { cancelCount += 1 }
+        )
+
+        await viewModel.beginCaptureSequence()
+
+        #expect(cameraService.captureCount == 0)
+        #expect(!completed)
+        #expect(cancelCount == 1)
+    }
+
+    @Test func dismissingACaptureErrorLeavesCapture() async {
+        let cameraService = FakeCameraCaptureService()
+        cameraService.captureError = CameraCaptureError.permissionDenied
+        var cancelCount = 0
+        let viewModel = CaptureViewModel(
+            mode: .fullSequence,
+            existingPhotos: [],
+            cameraService: cameraService,
+            countdownTick: {},
+            onComplete: { _ in },
+            onCancel: { cancelCount += 1 }
+        )
+        await viewModel.beginCaptureSequence()
+        #expect(viewModel.errorMessage != nil)
+
+        viewModel.dismissError()
+
+        #expect(viewModel.errorMessage == nil)
+        #expect(cancelCount == 1)
+    }
 }
