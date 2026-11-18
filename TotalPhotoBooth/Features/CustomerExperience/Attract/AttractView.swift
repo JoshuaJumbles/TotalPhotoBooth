@@ -1,9 +1,11 @@
 import SwiftUI
 import UIKit
 
+/// The idle screen. Any touch moves on to the pitch. (The spiral and logo
+/// replace this look in a later pass; motion will wake it too.)
 struct AttractView: View {
     let previewView: UIView
-    let onStart: () -> Void
+    let onWake: () -> Void
 
     var body: some View {
         ZStack {
@@ -18,16 +20,17 @@ struct AttractView: View {
 
             VStack(spacing: 24) {
                 Text("Welcome!")
-                    .font(.largeTitle.bold())
-                    .foregroundStyle(.white)
+                    .font(.system(size: 88, weight: .heavy))
 
-                Button(action: onStart) {
-                    Text("Tap to Start")
-                        .font(.title2)
-                        .frame(minWidth: 220)
-                }
-                .buttonStyle(.borderedProminent)
+                Text("Touch anywhere to begin")
+                    .font(.system(size: 36, weight: .semibold))
+                    .opacity(0.85)
             }
+            .foregroundStyle(.white)
+            .multilineTextAlignment(.center)
+            .padding(48)
         }
+        .contentShape(Rectangle())
+        .onTapGesture(perform: onWake)
     }
 }

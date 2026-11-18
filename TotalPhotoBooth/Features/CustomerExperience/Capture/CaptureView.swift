@@ -28,14 +28,26 @@ struct CaptureView: View {
                 }
             }
         }
+        .overlay(alignment: .topLeading) {
+            Button(action: viewModel.cancel) {
+                Label("Cancel", systemImage: "xmark")
+                    .font(.system(size: 28, weight: .semibold))
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 14)
+                    .background(.white.opacity(0.2), in: Capsule())
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.white)
+            .padding(32)
+        }
         .task { await viewModel.beginCaptureSequence() }
         .alert(
             "Error",
             isPresented: Binding(
                 get: { viewModel.errorMessage != nil },
-                set: { if !$0 { viewModel.errorMessage = nil } }
+                set: { if !$0 { viewModel.dismissError() } }
             ),
-            actions: { Button("OK") { viewModel.errorMessage = nil } },
+            actions: { Button("OK") { viewModel.dismissError() } },
             message: { Text(viewModel.errorMessage ?? "") }
         )
     }
