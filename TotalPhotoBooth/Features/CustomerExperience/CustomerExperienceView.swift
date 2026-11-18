@@ -5,12 +5,26 @@ struct CustomerExperienceView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
+        content
+            .background(StaffGestureInstaller { viewModel.openStaffMenu() })
+            .sheet(isPresented: Binding(
+                get: { viewModel.isStaffMenuPresented },
+                set: { viewModel.isStaffMenuPresented = $0 }
+            )) {
+                StaffMenuView(viewModel: viewModel.staffMenu) {
+                    viewModel.isStaffMenuPresented = false
+                    dismiss()
+                }
+            }
+    }
+
+    @ViewBuilder
+    private var content: some View {
         switch viewModel.step {
         case .attract:
             AttractView(
                 previewView: viewModel.previewView,
-                onStart: { viewModel.startSession() },
-                onExitKioskMode: { dismiss() }
+                onStart: { viewModel.startSession() }
             )
 
         case .capture(let mode, let existingPhotos):

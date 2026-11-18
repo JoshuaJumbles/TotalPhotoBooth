@@ -14,6 +14,7 @@ struct TotalPhotoBoothApp: App {
     private let cameraService: CameraCaptureServiceProtocol
     private let photoLibrarySaver: PhotoLibrarySaverProtocol
     private let printerConnectionService: PrinterConnectionServiceProtocol
+    private let supplyTracker = PrintSupplyTracker()
 
     init() {
         let modelContainer: ModelContainer
@@ -41,7 +42,8 @@ struct TotalPhotoBoothApp: App {
                     repository: repository,
                     cameraService: cameraService,
                     photoLibrarySaver: photoLibrarySaver,
-                    printerConnectionService: printerConnectionService
+                    printerConnectionService: printerConnectionService,
+                    supplyTracker: supplyTracker
                 ),
                 reportViewModel: ReportViewModel(repository: repository)
             )
