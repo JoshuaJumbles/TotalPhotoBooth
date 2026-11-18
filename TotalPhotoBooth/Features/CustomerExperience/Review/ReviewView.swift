@@ -57,6 +57,8 @@ struct ReviewView: View {
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 40)
+        .foregroundStyle(.white)
+        .background(SpiralBackground(dimming: 0.4))
         .alert(
             "Error",
             isPresented: Binding(

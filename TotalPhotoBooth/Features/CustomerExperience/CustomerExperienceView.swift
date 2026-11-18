@@ -22,10 +22,7 @@ struct CustomerExperienceView: View {
     private var content: some View {
         switch viewModel.step {
         case .attract:
-            AttractView(
-                previewView: viewModel.previewView,
-                onWake: { viewModel.showPitch() }
-            )
+            AttractView(onWake: { viewModel.showPitch() })
 
         case .pitch:
             PitchView(

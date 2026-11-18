@@ -2,8 +2,48 @@ import SwiftUI
 
 struct SessionConfigurationView: View {
     let viewModel: SessionConfigurationViewModel
+    @Environment(SpiralSettings.self) private var spiralSettings
 
     var body: some View {
+        // Scrolls once Debug Mode's spiral tuning makes the content taller
+        // than the screen; otherwise it stays vertically centered.
+        GeometryReader { geometry in
+            ScrollView {
+                content
+                    .padding()
+                    .frame(maxWidth: .infinity, minHeight: geometry.size.height)
+            }
+        }
+        .task {
+            await viewModel.loadInitialCount()
+            await viewModel.checkPrinterConnection()
+        }
+        .alert(
+            "Error",
+            isPresented: Binding(
+                get: { viewModel.errorMessage != nil },
+                set: { if !$0 { viewModel.errorMessage = nil } }
+            ),
+            actions: { Button("OK") { viewModel.errorMessage = nil } },
+            message: { Text(viewModel.errorMessage ?? "") }
+        )
+        .fullScreenCover(
+            isPresented: Binding(
+                get: { viewModel.isPresentingCustomerExperience },
+                set: { isPresented in
+                    if !isPresented {
+                        Task { await viewModel.endKioskMode() }
+                    }
+                }
+            )
+        ) {
+            if let customerExperienceViewModel = viewModel.customerExperienceViewModel {
+                CustomerExperienceView(viewModel: customerExperienceViewModel)
+            }
+        }
+    }
+
+    private var content: some View {
         VStack(spacing: 24) {
             Image(systemName: "camera.fill")
                 .font(.system(size: 64))
@@ -67,33 +107,10 @@ struct SessionConfigurationView: View {
                     .multilineTextAlignment(.center)
             }
             .padding(.top, 24)
-        }
-        .padding()
-        .task {
-            await viewModel.loadInitialCount()
-            await viewModel.checkPrinterConnection()
-        }
-        .alert(
-            "Error",
-            isPresented: Binding(
-                get: { viewModel.errorMessage != nil },
-                set: { if !$0 { viewModel.errorMessage = nil } }
-            ),
-            actions: { Button("OK") { viewModel.errorMessage = nil } },
-            message: { Text(viewModel.errorMessage ?? "") }
-        )
-        .fullScreenCover(
-            isPresented: Binding(
-                get: { viewModel.isPresentingCustomerExperience },
-                set: { isPresented in
-                    if !isPresented {
-                        Task { await viewModel.endKioskMode() }
-                    }
-                }
-            )
-        ) {
-            if let customerExperienceViewModel = viewModel.customerExperienceViewModel {
-                CustomerExperienceView(viewModel: customerExperienceViewModel)
+
+            if viewModel.isDebugModeEnabled {
+                SpiralTuningSection(settings: spiralSettings)
+                    .padding(.top, 16)
             }
         }
     }
