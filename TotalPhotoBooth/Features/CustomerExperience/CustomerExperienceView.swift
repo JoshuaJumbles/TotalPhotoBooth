@@ -3,6 +3,7 @@ import SwiftUI
 struct CustomerExperienceView: View {
     let viewModel: CustomerExperienceViewModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(SpiralSettings.self) private var spiralSettings
 
     var body: some View {
         ZStack {
@@ -25,6 +26,9 @@ struct CustomerExperienceView: View {
                 .zIndex(2)
         }
         .animation(transitionAnimation, value: viewModel.step.kind)
+        // Applied here too, so the full-screen kiosk gets the accent however
+        // the presentation inherits its environment.
+        .tint(spiralSettings.style.accentColor.color)
         .task { await viewModel.monitorPresence() }
         .background(StaffGestureInstaller { viewModel.openStaffMenu() })
         // A kiosk shows no clock, battery or home indicator — and nothing
