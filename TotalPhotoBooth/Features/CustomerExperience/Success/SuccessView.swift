@@ -6,17 +6,13 @@ struct SuccessView: View {
 
     var body: some View {
         VStack(spacing: 40) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 180))
-                .foregroundStyle(.green)
-
             Text("You're all set!")
                 .font(.system(size: 80, weight: .heavy))
 
             printStatusView
 
             Button(action: onDone) {
-                Text("Done")
+                Text("Right on!")
                     .font(.system(size: 40, weight: .bold))
                     .frame(minWidth: 280)
                     .padding(.vertical, 16)

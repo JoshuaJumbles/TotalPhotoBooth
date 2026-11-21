@@ -84,4 +84,77 @@ struct SpiralStyleTests {
         if d < -0.5 { d += 1 }
         return d
     }
+
+    @Test func logoColorsSwellInLockstepWithTheSpiral() {
+        var style = self.style
+        style.logoColor = SpiralStyle.RGBA(red: 0.9, green: 0.2, blue: 0.2)
+        style.logoShadowColor = SpiralStyle.RGBA(red: 0.2, green: 0.4, blue: 0.9)
+
+        let logo = style.logoColors(at: 15)   // quarter period: +20°
+
+        #expect(abs(hueDistance(hsb(logo.foreground).h, hsb(style.logoColor).h) - 20.0 / 360) < 0.002)
+        #expect(abs(hueDistance(hsb(logo.shadow).h, hsb(style.logoShadowColor).h) - 20.0 / 360) < 0.002)
+    }
+
+    @Test func blackAndWhiteLogoDefaultsAreUnchangedBySwell() {
+        let logo = SpiralStyle.default.logoColors(at: 15)
+
+        #expect(logo.foreground == SpiralStyle.default.logoColor)
+        #expect(logo.shadow == SpiralStyle.default.logoShadowColor)
+    }
+
+    @Test func logoOrbitRunsAtAFactorOfTheSpiralTurn() {
+        var style = self.style        // one spiral turn every 40 s
+        style.logoSpinFactor = 1
+        #expect(abs(style.logoOrbitAngle(at: 10) - style.rotation(at: 10)) < 0.0001)
+
+        style.logoSpinFactor = 2
+        #expect(abs(style.logoOrbitAngle(at: 10) - .pi) < 0.0001)
+
+        style.logoSpinFactor = 0
+        #expect(style.logoOrbitAngle(at: 10) == 0)
+        #expect(style.logoOrbitAngle(at: 37) == 0)
+    }
+
+    @Test func logoOrbitHasNoJumpWhenTheSpiralCompletesALap() {
+        var style = self.style
+        style.logoSpinFactor = 1.5
+
+        // Just before and just after the spiral's lap at t = 40 s.
+        let before = style.logoOrbitAngle(at: 39.99)
+        let after = style.logoOrbitAngle(at: 40.01)
+        var step = after - before
+        step -= (step / (2 * .pi)).rounded() * 2 * .pi   // compare modulo a turn
+
+        #expect(abs(step) < 0.01)
+    }
+
+    @Test func aStyleSavedBeforeLogoAndAccentSettingsStillLoads() throws {
+        let legacy = """
+        {"colorA":{"red":0.5,"green":0.1,"blue":0.1,"alpha":1},
+         "colorB":{"red":0.6,"green":0.2,"blue":0.2,"alpha":1},
+         "swellDegrees":12,"swellPeriod":90,"rotationPeriod":30,"arms":3}
+        """
+        let style = try JSONDecoder().decode(SpiralStyle.self, from: Data(legacy.utf8))
+
+        #expect(style.colorA == SpiralStyle.RGBA(red: 0.5, green: 0.1, blue: 0.1))
+        #expect(style.swellDegrees == 12)
+        #expect(style.arms == 3)
+        #expect(style.logoColor == SpiralStyle.default.logoColor)
+        #expect(style.logoShadowColor == SpiralStyle.default.logoShadowColor)
+        #expect(style.logoSpinFactor == SpiralStyle.default.logoSpinFactor)
+        #expect(style.accentColor == SpiralStyle.default.accentColor)
+    }
+
+    @Test func newLookSettingsSurviveARoundTrip() throws {
+        var style = self.style
+        style.logoColor = SpiralStyle.RGBA(red: 0.1, green: 0.8, blue: 0.3)
+        style.logoShadowColor = SpiralStyle.RGBA(red: 0.9, green: 0.9, blue: 0.1)
+        style.logoSpinFactor = 2.5
+        style.accentColor = SpiralStyle.RGBA(red: 1, green: 0.4, blue: 0)
+
+        let data = try JSONEncoder().encode(style)
+
+        #expect(try JSONDecoder().decode(SpiralStyle.self, from: data) == style)
+    }
 }
