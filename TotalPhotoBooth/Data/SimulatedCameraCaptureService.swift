@@ -14,6 +14,12 @@ struct SimulatedCameraCaptureService: CameraCaptureServiceProtocol {
         return image.jpegData(compressionQuality: 0.8) ?? Data()
     }
 
+    /// The Simulator has no camera frames, so nothing ever wakes the kiosk
+    /// here; a tap still does.
+    func makeLumaFrameStream() -> AsyncStream<LumaGrid> {
+        AsyncStream { _ in }
+    }
+
     func makePreviewView() -> UIView {
         let view = UIView()
         view.backgroundColor = .darkGray

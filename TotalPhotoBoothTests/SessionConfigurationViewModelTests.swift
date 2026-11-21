@@ -7,7 +7,7 @@ import UIKit
 struct SessionConfigurationViewModelTests {
     @Test func loadInitialCountReflectsExistingSessions() async {
         let repository = InMemoryPhotoSessionRepository(sessions: [PhotoSession(), PhotoSession()])
-        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting(), flashSettings: FlashSettings(defaults: .forTesting()), screenFlash: FakeScreenFlash())
+        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting(), flashSettings: FlashSettings(defaults: .forTesting()), screenFlash: FakeScreenFlash(), motionWakeSettings: MotionWakeSettings(defaults: .forTesting()))
 
         await viewModel.loadInitialCount()
 
@@ -17,7 +17,7 @@ struct SessionConfigurationViewModelTests {
     @Test func startKioskModeStartsHardwareSessionAndPresentsCustomerExperience() async {
         let repository = InMemoryPhotoSessionRepository()
         let cameraService = FakeCameraCaptureService()
-        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: cameraService, photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting(), flashSettings: FlashSettings(defaults: .forTesting()), screenFlash: FakeScreenFlash())
+        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: cameraService, photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting(), flashSettings: FlashSettings(defaults: .forTesting()), screenFlash: FakeScreenFlash(), motionWakeSettings: MotionWakeSettings(defaults: .forTesting()))
 
         await viewModel.startKioskMode()
 
@@ -31,7 +31,7 @@ struct SessionConfigurationViewModelTests {
         let repository = InMemoryPhotoSessionRepository()
         let cameraService = FakeCameraCaptureService()
         cameraService.startHardwareSessionError = CameraCaptureError.permissionDenied
-        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: cameraService, photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting(), flashSettings: FlashSettings(defaults: .forTesting()), screenFlash: FakeScreenFlash())
+        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: cameraService, photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting(), flashSettings: FlashSettings(defaults: .forTesting()), screenFlash: FakeScreenFlash(), motionWakeSettings: MotionWakeSettings(defaults: .forTesting()))
 
         await viewModel.startKioskMode()
 
@@ -43,7 +43,7 @@ struct SessionConfigurationViewModelTests {
     @Test func endKioskModeStopsHardwareSessionDismissesCustomerExperienceAndRefreshesCount() async {
         let repository = InMemoryPhotoSessionRepository(sessions: [PhotoSession()])
         let cameraService = FakeCameraCaptureService()
-        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: cameraService, photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting(), flashSettings: FlashSettings(defaults: .forTesting()), screenFlash: FakeScreenFlash())
+        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: cameraService, photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting(), flashSettings: FlashSettings(defaults: .forTesting()), screenFlash: FakeScreenFlash(), motionWakeSettings: MotionWakeSettings(defaults: .forTesting()))
         await viewModel.startKioskMode()
 
         await viewModel.endKioskMode()
@@ -56,7 +56,7 @@ struct SessionConfigurationViewModelTests {
     @Test func checkPrinterConnectionReflectsAConnectedPrinter() async {
         let repository = InMemoryPhotoSessionRepository()
         let printerConnectionService = FakePrinterConnectionService()
-        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: printerConnectionService, supplyTracker: .forTesting(), flashSettings: FlashSettings(defaults: .forTesting()), screenFlash: FakeScreenFlash())
+        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: printerConnectionService, supplyTracker: .forTesting(), flashSettings: FlashSettings(defaults: .forTesting()), screenFlash: FakeScreenFlash(), motionWakeSettings: MotionWakeSettings(defaults: .forTesting()))
 
         await viewModel.checkPrinterConnection()
 
@@ -68,7 +68,7 @@ struct SessionConfigurationViewModelTests {
         let repository = InMemoryPhotoSessionRepository()
         let printerConnectionService = FakePrinterConnectionService()
         printerConnectionService.reconnectResult = nil
-        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: printerConnectionService, supplyTracker: .forTesting(), flashSettings: FlashSettings(defaults: .forTesting()), screenFlash: FakeScreenFlash())
+        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: printerConnectionService, supplyTracker: .forTesting(), flashSettings: FlashSettings(defaults: .forTesting()), screenFlash: FakeScreenFlash(), motionWakeSettings: MotionWakeSettings(defaults: .forTesting()))
 
         await viewModel.checkPrinterConnection()
 
@@ -81,7 +81,7 @@ struct SessionConfigurationViewModelTests {
         let cameraService = FakeCameraCaptureService()
         let printerConnectionService = FakePrinterConnectionService()
         printerConnectionService.reconnectResult = nil
-        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: cameraService, photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: printerConnectionService, supplyTracker: .forTesting(), flashSettings: FlashSettings(defaults: .forTesting()), screenFlash: FakeScreenFlash())
+        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: cameraService, photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: printerConnectionService, supplyTracker: .forTesting(), flashSettings: FlashSettings(defaults: .forTesting()), screenFlash: FakeScreenFlash(), motionWakeSettings: MotionWakeSettings(defaults: .forTesting()))
 
         await viewModel.startKioskMode()
 
@@ -96,7 +96,7 @@ struct SessionConfigurationViewModelTests {
         let cameraService = FakeCameraCaptureService()
         let printerConnectionService = FakePrinterConnectionService()
         printerConnectionService.reconnectResult = nil
-        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: cameraService, photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: printerConnectionService, supplyTracker: .forTesting(), flashSettings: FlashSettings(defaults: .forTesting()), screenFlash: FakeScreenFlash())
+        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: cameraService, photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: printerConnectionService, supplyTracker: .forTesting(), flashSettings: FlashSettings(defaults: .forTesting()), screenFlash: FakeScreenFlash(), motionWakeSettings: MotionWakeSettings(defaults: .forTesting()))
         viewModel.isDebugModeEnabled = true
 
         await viewModel.startKioskMode()
@@ -109,7 +109,7 @@ struct SessionConfigurationViewModelTests {
     @Test func printerSelectedPersistsPairingAndUpdatesDisplayedState() {
         let repository = InMemoryPhotoSessionRepository()
         let printerConnectionService = FakePrinterConnectionService()
-        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: printerConnectionService, supplyTracker: .forTesting(), flashSettings: FlashSettings(defaults: .forTesting()), screenFlash: FakeScreenFlash())
+        let viewModel = SessionConfigurationViewModel(repository: repository, cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: printerConnectionService, supplyTracker: .forTesting(), flashSettings: FlashSettings(defaults: .forTesting()), screenFlash: FakeScreenFlash(), motionWakeSettings: MotionWakeSettings(defaults: .forTesting()))
         let printer = UIPrinter(url: URL(string: "ipp://192.168.1.200/printer")!)
 
         viewModel.printerSelected(printer)
@@ -120,7 +120,7 @@ struct SessionConfigurationViewModelTests {
     }
 
     @Test func kioskModeKeepsOneCustomerExperienceForTheWholeRun() async {
-        let viewModel = SessionConfigurationViewModel(repository: InMemoryPhotoSessionRepository(), cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting(), flashSettings: FlashSettings(defaults: .forTesting()), screenFlash: FakeScreenFlash())
+        let viewModel = SessionConfigurationViewModel(repository: InMemoryPhotoSessionRepository(), cameraService: FakeCameraCaptureService(), photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(), supplyTracker: .forTesting(), flashSettings: FlashSettings(defaults: .forTesting()), screenFlash: FakeScreenFlash(), motionWakeSettings: MotionWakeSettings(defaults: .forTesting()))
 
         await viewModel.startKioskMode()
         let first = viewModel.customerExperienceViewModel

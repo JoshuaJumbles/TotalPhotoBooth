@@ -1,20 +1,16 @@
 import SwiftUI
 import UIKit
 
+/// Drawn over the live preview, which `CustomerExperienceView` keeps behind
+/// Pitch and Capture.
 struct CaptureView: View {
     let viewModel: CaptureViewModel
-    let previewView: UIView
 
     var body: some View {
         ZStack {
-            Color.black
-                .ignoresSafeArea()
-
-            CameraPreviewView(previewView: previewView)
-                .aspectRatio(CompositeImageRendererService.pictureAspectRatio, contentMode: .fit)
-
             centerContent
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .overlay(alignment: .top) {
             Text("Photo \(viewModel.activeIndex + 1) of \(CompositeImageRendererService.totalPhotos)")
                 .font(.system(size: 40, weight: .bold))

@@ -11,7 +11,26 @@ final class CustomerExperienceViewModel {
         case capture(mode: CaptureViewModel.Mode, existingPhotos: [CapturedPhoto])
         case review(photos: [CapturedPhoto])
         case success(photoStrip: UIImage)
+
+        /// Which screen, ignoring associated values — what crossfades key on.
+        enum Kind: Equatable {
+            case attract, pitch, capture, review, success
+
+            /// The live camera preview sits behind these screens.
+            var showsCameraPreview: Bool { self == .pitch || self == .capture }
+        }
+
+        var kind: Kind {
+            switch self {
+            case .attract: .attract
+            case .pitch: .pitch
+            case .capture: .capture
+            case .review: .review
+            case .success: .success
+            }
+        }
     }
+
 
     enum PrintStatus: Equatable {
         case idle
@@ -40,6 +59,8 @@ final class CustomerExperienceViewModel {
     private(set) var printTask: Task<Void, Never>?
     var isStaffMenuPresented = false
     let staffMenu: StaffMenuViewModel
+    /// Watches the booth on Attract and wakes the kiosk when someone looks in.
+    let presenceMonitor: PresenceMonitor
     let previewView: UIView
 
     private let repository: PhotoSessionRepositoryProtocol
@@ -66,6 +87,7 @@ final class CustomerExperienceViewModel {
          screenFlash: ScreenFlashProtocol,
          isDebugMode: Bool = false,
          captureTiming: CaptureTiming = .standard,
+         motionWake: MotionWakeConfig = .standard,
          timeouts: KioskTimeouts = .standard,
          sleep: @escaping @MainActor (Duration) async -> Void = { try? await Task.sleep(for: $0) }) {
         self.repository = repository
@@ -83,6 +105,22 @@ final class CustomerExperienceViewModel {
             supplyTracker: supplyTracker
         )
         self.previewView = cameraService.makePreviewView()
+        self.presenceMonitor = PresenceMonitor(config: motionWake)
+        presenceMonitor.onWake = { [weak self] in self?.wakeFromPresence() }
+        presenceMonitor.arm()   // the kiosk starts on Attract
+    }
+
+    /// Debug Mode shows a live motion meter on Attract for tuning in the booth.
+    var showsMotionMeter: Bool { isDebugMode }
+
+    /// Feeds camera frames to the presence monitor for this Kiosk Mode run.
+    func monitorPresence() async {
+        await presenceMonitor.run(frames: cameraService.makeLumaFrameStream())
+    }
+
+    private func wakeFromPresence() {
+        guard step == .attract else { return }
+        showPitch()
     }
 
     func showPitch() {
@@ -157,6 +195,11 @@ final class CustomerExperienceViewModel {
     // MARK: - Step changes and timeouts
 
     private func stepDidChange() {
+        if step == .attract {
+            presenceMonitor.arm()
+        } else {
+            presenceMonitor.disarm()
+        }
         switch step {
         case .capture(let mode, let existingPhotos):
             captureViewModel = makeCaptureViewModel(mode: mode, existingPhotos: existingPhotos)

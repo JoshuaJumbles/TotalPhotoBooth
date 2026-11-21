@@ -1,5 +1,6 @@
 import AVFoundation
 import CoreMedia
+import os
 import UIKit
 
 enum CameraCaptureError: LocalizedError {
@@ -28,6 +29,10 @@ enum CameraCaptureError: LocalizedError {
 final class AVFoundationCameraCaptureService: NSObject, CameraCaptureServiceProtocol {
     private let session = AVCaptureSession()
     private let photoOutput = AVCapturePhotoOutput()
+    private let videoOutput = AVCaptureVideoDataOutput()
+    private let frameQueue = DispatchQueue(label: "TotalPhotoBooth.lumaFrames")
+    /// Touched only from `frameQueue` (the video delegate) and the lock.
+    private nonisolated let lumaFeed = LumaFeed()
     private var isConfigured = false
     private var continuation: CheckedContinuation<Data, Error>?
 
@@ -58,6 +63,10 @@ final class AVFoundationCameraCaptureService: NSObject, CameraCaptureServiceProt
         VideoPreviewUIView(session: session, verticalAlignment: CompositeImageRendererService.pictureCropAlignment)
     }
 
+    func makeLumaFrameStream() -> AsyncStream<LumaGrid> {
+        lumaFeed.makeStream()
+    }
+
     private func configureSessionIfNeeded() async throws {
         guard !isConfigured else { return }
 
@@ -82,6 +91,17 @@ final class AVFoundationCameraCaptureService: NSObject, CameraCaptureServiceProt
         }
         session.addOutput(photoOutput)
 
+        // Frames for motion wake. Optional: if the device can't add it, the
+        // kiosk still works, it just won't wake itself.
+        videoOutput.videoSettings = [
+            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
+        ]
+        videoOutput.alwaysDiscardsLateVideoFrames = true
+        videoOutput.setSampleBufferDelegate(self, queue: frameQueue)
+        if session.canAddOutput(videoOutput) {
+            session.addOutput(videoOutput)
+        }
+
         isConfigured = true
     }
 }
@@ -96,6 +116,50 @@ extension AVFoundationCameraCaptureService: AVCapturePhotoCaptureDelegate {
         } else {
             continuation?.resume(throwing: CameraCaptureError.captureFailed)
         }
+    }
+}
+
+extension AVFoundationCameraCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
+    nonisolated func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+        lumaFeed.deliver(sampleBuffer)
+    }
+}
+
+/// Throttles camera frames to a few per second, reduces each to a
+/// `LumaGrid`, and hands it to whichever stream is current.
+private nonisolated final class LumaFeed: Sendable {
+    private struct State {
+        var continuation: AsyncStream<LumaGrid>.Continuation?
+        var lastDelivered: TimeInterval = -.infinity
+    }
+
+    /// About 5 frames a second is plenty to notice someone leaning in.
+    private let minimumInterval: TimeInterval = 0.2
+    private let state = OSAllocatedUnfairLock(initialState: State())
+
+    func makeStream() -> AsyncStream<LumaGrid> {
+        let (stream, continuation) = AsyncStream.makeStream(of: LumaGrid.self, bufferingPolicy: .bufferingNewest(1))
+        let previous = state.withLock { state in
+            let previous = state.continuation
+            state.continuation = continuation
+            return previous
+        }
+        previous?.finish()
+        return stream
+    }
+
+    func deliver(_ sampleBuffer: CMSampleBuffer) {
+        let timestamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer).seconds
+        let continuation: AsyncStream<LumaGrid>.Continuation? = state.withLock { state in
+            guard let continuation = state.continuation,
+                  timestamp - state.lastDelivered >= minimumInterval else { return nil }
+            state.lastDelivered = timestamp
+            return continuation
+        }
+        guard let continuation,
+              let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer),
+              let grid = LumaSampler.grid(from: pixelBuffer, timestamp: timestamp) else { return }
+        continuation.yield(grid)
     }
 }
 

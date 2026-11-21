@@ -121,6 +121,9 @@ struct SessionConfigurationView: View {
                     onTestFlash: { Task { await viewModel.testFlash() } }
                 )
                 .padding(.top, 16)
+
+                MotionWakeTuningSection(settings: viewModel.motionWakeSettings)
+                    .padding(.top, 16)
             }
         }
     }

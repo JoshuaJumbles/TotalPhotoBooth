@@ -19,6 +19,7 @@ final class SessionConfigurationViewModel {
     private(set) var isTestFlashing = false
     let supplyTracker: PrintSupplyTracker
     let flashSettings: FlashSettings
+    let motionWakeSettings: MotionWakeSettings
 
     private let repository: PhotoSessionRepositoryProtocol
     private let cameraService: CameraCaptureServiceProtocol
@@ -32,7 +33,8 @@ final class SessionConfigurationViewModel {
          printerConnectionService: PrinterConnectionServiceProtocol,
          supplyTracker: PrintSupplyTracker,
          flashSettings: FlashSettings,
-         screenFlash: ScreenFlashProtocol) {
+         screenFlash: ScreenFlashProtocol,
+         motionWakeSettings: MotionWakeSettings) {
         self.repository = repository
         self.cameraService = cameraService
         self.photoLibrarySaver = photoLibrarySaver
@@ -40,6 +42,7 @@ final class SessionConfigurationViewModel {
         self.supplyTracker = supplyTracker
         self.flashSettings = flashSettings
         self.screenFlash = screenFlash
+        self.motionWakeSettings = motionWakeSettings
     }
 
     /// Fires the real flash for a moment so its warmth can be judged in the
@@ -115,7 +118,8 @@ final class SessionConfigurationViewModel {
             screenFlash: screenFlash,
             isDebugMode: isDebugModeEnabled,
             // Snapshotted per kiosk run, like Debug Mode.
-            captureTiming: flashSettings.captureTiming
+            captureTiming: flashSettings.captureTiming,
+            motionWake: motionWakeSettings.config
         )
     }
 }
