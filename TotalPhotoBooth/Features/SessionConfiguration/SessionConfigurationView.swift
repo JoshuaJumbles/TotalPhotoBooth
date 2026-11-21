@@ -47,6 +47,40 @@ struct SessionConfigurationView: View {
         }
     }
 
+    /// Debug Mode: wipe the recorded sessions, e.g. after test runs.
+    private var historySection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("History")
+                .font(.headline)
+
+            Text("Clears the session count and the Activity report. Photos in the library and the paper/ink counts stay as they are.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Button("Reset Session History…", role: .destructive) {
+                viewModel.isConfirmingHistoryReset = true
+            }
+            .disabled(viewModel.sessionCount == 0)
+            .alert(
+                "Reset Session History?",
+                isPresented: Binding(
+                    get: { viewModel.isConfirmingHistoryReset },
+                    set: { viewModel.isConfirmingHistoryReset = $0 }
+                ),
+                actions: {
+                    Button("Delete \(viewModel.sessionCount) Session\(viewModel.sessionCount == 1 ? "" : "s")", role: .destructive) {
+                        Task { await viewModel.resetHistory() }
+                    }
+                    Button("Cancel", role: .cancel) {}
+                },
+                message: {
+                    Text("This permanently deletes the recorded sessions. It can't be undone.")
+                }
+            )
+        }
+        .frame(maxWidth: 480, alignment: .leading)
+    }
+
     private var content: some View {
         VStack(spacing: 24) {
             Image(systemName: "camera.fill")
@@ -142,6 +176,9 @@ struct SessionConfigurationView: View {
                 .padding(.top, 16)
 
                 MotionWakeTuningSection(settings: viewModel.motionWakeSettings)
+                    .padding(.top, 16)
+
+                historySection
                     .padding(.top, 16)
             }
         }

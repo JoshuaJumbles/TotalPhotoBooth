@@ -35,4 +35,11 @@ final class SwiftDataPhotoSessionRepository: PhotoSessionRepositoryProtocol {
         let models = try context.fetch(descriptor)
         return models.map { PhotoSession(id: $0.id, timestamp: $0.timestamp) }
     }
+
+    @MainActor
+    func deleteAll() async throws {
+        let context = modelContainer.mainContext
+        try context.delete(model: PhotoSessionModel.self)
+        try context.save()
+    }
 }

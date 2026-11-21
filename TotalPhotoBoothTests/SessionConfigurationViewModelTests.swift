@@ -133,4 +133,28 @@ struct SessionConfigurationViewModelTests {
 
         #expect(viewModel.customerExperienceViewModel == nil)
     }
+
+    @Test func resetHistoryDeletesEverySessionAndZeroesTheCount() async {
+        let repository = InMemoryPhotoSessionRepository(sessions: [PhotoSession(), PhotoSession(), PhotoSession()])
+        let viewModel = SessionConfigurationViewModel.forTesting(repository: repository)
+        await viewModel.loadInitialCount()
+
+        await viewModel.resetHistory()
+
+        #expect(repository.sessions.isEmpty)
+        #expect(viewModel.sessionCount == 0)
+        #expect(viewModel.errorMessage == nil)
+    }
+
+    @Test func resetHistoryReportsAFailureAndKeepsTheCount() async {
+        struct DeleteFailure: Error {}
+        let repository = InMemoryPhotoSessionRepository(sessions: [PhotoSession(), PhotoSession()])
+        repository.deleteError = DeleteFailure()
+        let viewModel = SessionConfigurationViewModel.forTesting(repository: repository)
+
+        await viewModel.resetHistory()
+
+        #expect(viewModel.errorMessage != nil)
+        #expect(viewModel.sessionCount == 2)
+    }
 }

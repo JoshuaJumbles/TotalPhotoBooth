@@ -25,6 +25,8 @@ final class SessionConfigurationViewModel {
     /// True while asking staff to confirm starting the kiosk with Guided
     /// Access off, when customers could leave the app.
     var isConfirmingUnlockedStart = false
+    /// True while asking staff to confirm wiping the session history.
+    var isConfirmingHistoryReset = false
 
     private let repository: PhotoSessionRepositoryProtocol
     private let cameraService: CameraCaptureServiceProtocol
@@ -72,6 +74,18 @@ final class SessionConfigurationViewModel {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    /// Debug Mode: deletes every recorded session, zeroing the count and the
+    /// Activity report (e.g. after test runs). Photos in the library and the
+    /// paper/ink counts are untouched.
+    func resetHistory() async {
+        do {
+            try await repository.deleteAll()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        await loadInitialCount()
     }
 
     func checkPrinterConnection() async {
