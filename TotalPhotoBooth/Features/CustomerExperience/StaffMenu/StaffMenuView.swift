@@ -30,6 +30,19 @@ struct StaffMenuView: View {
                 }
 
                 Section {
+                    Label(
+                        viewModel.guidedAccess.isEnabled ? "Guided Access on" : "Guided Access off",
+                        systemImage: viewModel.guidedAccess.isEnabled ? "lock.fill" : "lock.open"
+                    )
+                } header: {
+                    Text("iPad Lock")
+                } footer: {
+                    Text(viewModel.guidedAccess.isEnabled
+                         ? "To unlock the iPad, triple-click the Home button and enter the passcode."
+                         : "Customers could leave the app. Triple-click the Home button to lock the iPad to this app.")
+                }
+
+                Section {
                     Button("Exit Kiosk Mode", role: .destructive, action: onExitKioskMode)
                 }
             }

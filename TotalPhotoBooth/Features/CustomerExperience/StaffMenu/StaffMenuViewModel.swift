@@ -17,13 +17,18 @@ final class StaffMenuViewModel {
 
     private(set) var reprintStatus: ReprintStatus = .idle
     let supplyTracker: PrintSupplyTracker
+    /// Shown so staff know whether the iPad is locked, and how to unlock it.
+    let guidedAccess: GuidedAccessStatusProviding
 
     private let printerConnectionService: PrinterConnectionServiceProtocol
     private let logger = Logger(subsystem: "TotalPhotoBooth", category: "Printing")
 
-    init(printerConnectionService: PrinterConnectionServiceProtocol, supplyTracker: PrintSupplyTracker) {
+    init(printerConnectionService: PrinterConnectionServiceProtocol,
+         supplyTracker: PrintSupplyTracker,
+         guidedAccess: GuidedAccessStatusProviding = SystemGuidedAccessStatus()) {
         self.printerConnectionService = printerConnectionService
         self.supplyTracker = supplyTracker
+        self.guidedAccess = guidedAccess
     }
 
     /// Clears a finished reprint's result so a reopened menu starts fresh;

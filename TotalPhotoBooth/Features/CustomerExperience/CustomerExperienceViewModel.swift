@@ -89,6 +89,7 @@ final class CustomerExperienceViewModel {
          captureTiming: CaptureTiming = .standard,
          motionWake: MotionWakeConfig = .standard,
          timeouts: KioskTimeouts = .standard,
+         guidedAccess: GuidedAccessStatusProviding = SystemGuidedAccessStatus(),
          sleep: @escaping @MainActor (Duration) async -> Void = { try? await Task.sleep(for: $0) }) {
         self.repository = repository
         self.cameraService = cameraService
@@ -102,7 +103,8 @@ final class CustomerExperienceViewModel {
         self.sleep = sleep
         self.staffMenu = StaffMenuViewModel(
             printerConnectionService: printerConnectionService,
-            supplyTracker: supplyTracker
+            supplyTracker: supplyTracker,
+            guidedAccess: guidedAccess
         )
         self.previewView = cameraService.makePreviewView()
         self.presenceMonitor = PresenceMonitor(config: motionWake)

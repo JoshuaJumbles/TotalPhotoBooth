@@ -5,6 +5,7 @@ final class InMemoryPhotoSessionRepository: PhotoSessionRepositoryProtocol {
     private(set) var sessions: [PhotoSession]
     var saveError: Error?
     var fetchError: Error?
+    var deleteError: Error?
 
     init(sessions: [PhotoSession] = []) {
         self.sessions = sessions
@@ -18,5 +19,10 @@ final class InMemoryPhotoSessionRepository: PhotoSessionRepositoryProtocol {
     func fetchAll() async throws -> [PhotoSession] {
         if let fetchError { throw fetchError }
         return sessions
+    }
+
+    func deleteAll() async throws {
+        if let deleteError { throw deleteError }
+        sessions.removeAll()
     }
 }

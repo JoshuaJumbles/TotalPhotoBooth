@@ -55,11 +55,7 @@ struct FlashTests {
 
     @Test func testFlashTurnsTheScreenFlashOnThenOff() async {
         let flash = FakeScreenFlash()
-        let viewModel = SessionConfigurationViewModel(
-            repository: InMemoryPhotoSessionRepository(), cameraService: FakeCameraCaptureService(),
-            photoLibrarySaver: FakePhotoLibrarySaver(), printerConnectionService: FakePrinterConnectionService(),
-            supplyTracker: .forTesting(), flashSettings: FlashSettings(defaults: .forTesting()), screenFlash: flash, motionWakeSettings: MotionWakeSettings(defaults: .forTesting())
-        )
+        let viewModel = SessionConfigurationViewModel.forTesting(screenFlash: flash)
 
         await viewModel.testFlash(duration: .zero)
 
