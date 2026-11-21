@@ -17,6 +17,7 @@ struct SessionConfigurationView: View {
         .task {
             await viewModel.loadInitialCount()
             await viewModel.checkPrinterConnection()
+            await viewModel.resumeKioskModeIfNeeded()
         }
         .alert(
             "Error",
@@ -62,6 +63,8 @@ struct SessionConfigurationView: View {
                     .foregroundStyle(.secondary)
             }
 
+            GuidedAccessStatusRow(isEnabled: viewModel.guidedAccess.isEnabled)
+
             Button(viewModel.pairedPrinterName == nil ? "Select Printer" : "Change Printer") {
                 viewModel.isPrinterPickerPresented = true
             }
@@ -95,6 +98,22 @@ struct SessionConfigurationView: View {
             }
             .buttonStyle(.borderedProminent)
             .disabled(viewModel.isStartingKioskMode)
+            .alert(
+                "Guided Access Is Off",
+                isPresented: Binding(
+                    get: { viewModel.isConfirmingUnlockedStart },
+                    set: { viewModel.isConfirmingUnlockedStart = $0 }
+                ),
+                actions: {
+                    Button("Start Anyway") {
+                        Task { await viewModel.startKioskMode(skippingGuidedAccessCheck: true) }
+                    }
+                    Button("Cancel", role: .cancel) {}
+                },
+                message: {
+                    Text("Customers could leave the app. Triple-click the Home button to lock the iPad to this app first.")
+                }
+            )
 
             VStack(spacing: 4) {
                 Toggle("Debug Mode", isOn: Binding(
@@ -124,6 +143,27 @@ struct SessionConfigurationView: View {
 
                 MotionWakeTuningSection(settings: viewModel.motionWakeSettings)
                     .padding(.top, 16)
+            }
+        }
+    }
+}
+
+/// Whether the iPad is locked to this app, with how to lock it when it isn't.
+private struct GuidedAccessStatusRow: View {
+    let isEnabled: Bool
+
+    var body: some View {
+        VStack(spacing: 4) {
+            HStack {
+                Image(systemName: isEnabled ? "lock.fill" : "lock.open")
+                    .foregroundStyle(isEnabled ? .green : .secondary)
+                Text(isEnabled ? "Guided Access on" : "Guided Access off")
+                    .foregroundStyle(.secondary)
+            }
+            if !isEnabled {
+                Text("Triple-click the Home button to lock the iPad to this app.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
     }

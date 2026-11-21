@@ -19,6 +19,8 @@ struct TotalPhotoBoothApp: App {
     private let flashSettings = FlashSettings()
     private let screenFlash = ScreenBrightnessFlash()
     private let motionWakeSettings = MotionWakeSettings()
+    private let guidedAccess = SystemGuidedAccessStatus()
+    private let resumeStore = KioskResumeStore()
 
     init() {
         let modelContainer: ModelContainer
@@ -50,7 +52,9 @@ struct TotalPhotoBoothApp: App {
                     supplyTracker: supplyTracker,
                     flashSettings: flashSettings,
                     screenFlash: screenFlash,
-                    motionWakeSettings: motionWakeSettings
+                    motionWakeSettings: motionWakeSettings,
+                    guidedAccess: guidedAccess,
+                    resumeStore: resumeStore
                 ),
                 reportViewModel: ReportViewModel(repository: repository)
             )
